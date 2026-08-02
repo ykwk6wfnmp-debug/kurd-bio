@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ckb" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KurdBio - بەڕێوەبردنی بایۆ</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+        body { background: #0d1117; color: #fff; min-height: 100vh; padding: 20px; display: flex; justify-content: center; }
+        .container { width: 100%; max-width: 600px; }
+        
+        .card { background: #161b22; border: 1px solid #30363d; border-radius: 20px; padding: 25px; margin-bottom: 20px; }
+        h2 { font-size: 20px; color: #00f2fe; margin-bottom: 15px; }
+        
+        .form-group { margin-bottom: 15px; text-align: right; }
+        .form-group label { display: block; font-size: 13px; color: #8b949e; margin-bottom: 6px; }
+        .form-group input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #30363d; background: #0d1117; color: #fff; outline: none; }
+        
+        .btn { width: 100%; padding: 12px; border-radius: 10px; border: none; background: linear-gradient(90deg, #ff0050, #00f2fe); color: #fff; font-size: 15px; font-weight: bold; cursor: pointer; }
+        .btn-add { background: #2ea043; color: #fff; margin-bottom: 15px; }
+
+        /* Preview Link Box */
+        .link-item { background: #0d1117; border: 1px solid #30363d; padding: 12px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .delete-btn { background: #da3633; border: none; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+
+        .preview-box { background: linear-gradient(135deg, #1f2937, #111827); border: 2px dashed #00f2fe; padding: 20px; border-radius: 20px; text-align: center; margin-top: 20px; }
+        .preview-avatar { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 10px; border: 2px solid #00f2fe; }
+        .preview-btn { display: block; width: 100%; padding: 12px; background: #21262d; color: #fff; text-decoration: none; border-radius: 30px; margin-top: 10px; border: 1px solid #30363d; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <!-- Section 1: User Info -->
+        <div class="card">
+            <h2>👤 زانیارییەکانی پرۆفایل</h2>
+            <div class="form-group">
+                <label>ناوی پەیج یان ناوی خۆت</label>
+                <input type="text" id="username" placeholder="نموونە: ئاری ئەحمەد" oninput="updatePreview()">
+            </div>
+            <div class="form-group">
+                <label>کورتە دەق (Bio)</label>
+                <input type="text" id="bioText" placeholder="نموونە: دروستکەری ناوەڕۆک 🎬" oninput="updatePreview()">
+            </div>
+            <div class="form-group">
+                <label> لینکی وێنەی پرۆفایل (URL)</label>
+                <input type="url" id="avatarUrl" placeholder="https://..." oninput="updatePreview()">
+            </div>
+        </div>
+
+        <!-- Section 2: Manage Links -->
+        <div class="card">
+            <h2>🔗 بەڕێوەبردنی لینکەکان</h2>
+            
+            <div class="form-group">
+                <label>ناونیشانی لینک (Title)</label>
+                <input type="text" id="linkTitle" placeholder="نموونە: چەناڵی یووتیوب">
+            </div>
+            <div class="form-group">
+                <label>لینکی ڕاستەقینە (URL)</label>
+                <input type="url" id="linkUrl" placeholder="https://youtube.com/...">
+            </div>
+            
+            <button class="btn btn-add" onclick="addLink()">زیادکردنی لینک ➕</button>
+
+            <!-- List of added links -->
+            <div id="links-container"></div>
+        </div>
+
+        <!-- Section 3: Live Preview -->
+        <div class="preview-box">
+            <h3 style="font-size: 14px; color: #8b949e; margin-bottom: 15px;">📱 پێشاندانی ڕاستەوخۆ (Live Preview)</h3>
+            <img id="prev-avatar" class="preview-avatar" src="https://via.placeholder.com/80" alt="Avatar">
+            <h3 id="prev-name" style="font-size: 18px;">ناوی تۆ</h3>
+            <p id="prev-bio" style="color: #8b949e; font-size: 13px; margin-top: 4px;">زانیاری بایۆ لێرە دەردەکەوێت</p>
+            
+            <div id="prev-links-container" style="margin-top: 15px;"></div>
+        </div>
+
+    </div>
+
+    <script>
+        let linksList = [];
+
+        function updatePreview() {
+            const name = document.getElementById('username').value || 'ناوی تۆ';
+            const bio = document.getElementById('bioText').value || 'زانیاری بایۆ لێرە دەردەکەوێت';
+            const avatar = document.getElementById('avatarUrl').value || 'https://via.placeholder.com/80';
+
+            document.getElementById('prev-name').innerText = name;
+            document.getElementById('prev-bio').innerText = bio;
+            document.getElementById('prev-avatar').src = avatar;
+        }
+
+        function addLink() {
+            const title = document.getElementById('linkTitle').value;
+            const url = document.getElementById('linkUrl').value;
+
+            if(!title || !url) {
+                alert('تکایە ناونیشان و لینکی ڕاست بنووسە!');
+                return;
+            }
+
+            const newLink = { id: Date.now(), title, url };
+            linksList.push(newLink);
+
+            // Clear inputs
+            document.getElementById('linkTitle').value = '';
+            document.getElementById('linkUrl').value = '';
+
+            renderLinks();
+        }
+
+        function deleteLink(id) {
+            linksList = linksList.filter(item => item.id !== id);
+            renderLinks();
+        }
+
+        function renderLinks() {
+            const container = document.getElementById('links-container');
+            const prevContainer = document.getElementById('prev-links-container');
+
+            container.innerHTML = '';
+            prevContainer.innerHTML = '';
+
+            linksList.forEach(item => {
+                // Render inside management card
+                container.innerHTML += `
+                    <div class="link-item">
+                        <div>
+                            <strong>${item.title}</strong>
+                            <div style="font-size: 11px; color: #8b949e;">${item.url}</div>
+                        </div>
+                        <button class="delete-btn" onclick="deleteLink(${item.id})">سڕینەوە 🗑️</button>
+                    </div>
+                `;
+
+                // Render inside Live Preview
+                prevContainer.innerHTML += `
+                    <a href="${item.url}" target="_blank" class="preview-btn">🔗 ${item.title}</a>
+                `;
+            });
+        }
+    </script>
+</body>
+</html>

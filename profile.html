@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ckb" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KurdBio - Profile</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+        body { background: linear-gradient(135deg, #0d1117, #161b22); color: #fff; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+        .profile-card { width: 100%; max-width: 420px; text-align: center; background: rgba(22, 27, 34, 0.8); backdrop-filter: blur(10px); border: 1px solid #30363d; border-radius: 24px; padding: 35px 25px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5); }
+        .avatar { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid #00f2fe; margin-bottom: 15px; box-shadow: 0 0 15px rgba(0, 242, 254, 0.3); }
+        h1 { font-size: 22px; color: #ffffff; margin-bottom: 6px; }
+        p.bio { color: #8b949e; font-size: 14px; margin-bottom: 25px; line-height: 1.4; }
+        .links-container { display: flex; flex-direction: column; gap: 12px; }
+        .bio-btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 14px 20px; background: #21262d; color: #fff; text-decoration: none; border-radius: 14px; border: 1px solid #30363d; font-weight: bold; font-size: 15px; transition: all 0.2s ease-in-out; }
+        .bio-btn:hover { border-color: #ff0050; transform: translateY(-3px); background: #282e37; box-shadow: 0 5px 15px rgba(255, 0, 80, 0.2); }
+        .footer { margin-top: 30px; font-size: 12px; color: #484f58; }
+        .footer span { color: #00f2fe; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="profile-card">
+        <img id="user-avatar" class="avatar" src="https://via.placeholder.com/100" alt="Avatar">
+        <h1 id="user-name">دەچێتە بار...</h1>
+        <p id="user-bio" class="bio"></p>
+        <div id="user-links" class="links-container"></div>
+        <div class="footer">دروستکراوە بە <span>KurdBio</span> 🚀</div>
+    </div>
+
+    <script>
+        async function loadProfile() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const username = urlParams.get('user');
+
+            if(!username) {
+                alert('بەکارهێنەر دیاری نەکراوە!');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/get-bio/${username}`);
+                const data = await response.json();
+
+                if(data.success) {
+                    const p = data.profile;
+                    document.getElementById('user-avatar').src = p.avatar || 'https://via.placeholder.com/100';
+                    document.getElementById('user-name').innerText = p.name;
+                    document.getElementById('user-bio').innerText = p.bio;
+
+                    const linksBox = document.getElementById('user-links');
+                    p.links.forEach(item => {
+                        linksBox.innerHTML += `<a href="${item.url}" target="_blank" class="bio-btn">🔗 ${item.title}</a>`;
+                    });
+                } else {
+                    alert('پڕۆفایل نەدۆزرایەوە!');
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        loadProfile();
+    </script>
+</body>
+</html>
