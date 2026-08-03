@@ -244,7 +244,6 @@ app.get('/dashboard', (req, res) => {
                 const username = urlParams.get('user');
                 if(!username) window.location.href = '/';
                 
-                // دڵنیابوونەوە لەوەی تەنها لینکی گشتی پڕۆفایل `/profile?user=` کۆپی دەبێت
                 document.getElementById('profile-link').value = window.location.origin + '/profile?user=' + username;
                 
                 function copyLink() {
@@ -268,7 +267,7 @@ app.get('/dashboard', (req, res) => {
     `);
 });
 
-// گالەری ١٠٠ دیزاینە ناوازەکە لەگەڵ دوگمەی کۆپیکردنی لینکی گشتی پڕۆفایل
+// گالەری ١٠٠ دیزاینە ناوازەکە بە شێوازی سکریپتی خێرا و پارێزراو
 app.get('/themes', (req, res) => {
     res.send(`
         <!DOCTYPE html>
@@ -280,13 +279,8 @@ app.get('/themes', (req, res) => {
                 * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
                 body { background: #07090e; color: #fff; display: flex; justify-content: center; min-height: 100vh; padding: 25px; }
                 .container { width: 100%; max-width: 950px; padding-bottom: 40px; }
-                .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
-                h2 { color: #fff; font-size: 24px; font-weight: 800; background: linear-gradient(90deg, #ff007f, #00f2fe); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-                .share-box { background: rgba(16, 22, 30, 0.9); border: 1px solid rgba(0, 242, 254, 0.4); padding: 10px 15px; border-radius: 14px; display: flex; gap: 10px; align-items: center; }
-                .share-box input { background: #07090e; border: 1px solid #30363d; color: #00f2fe; padding: 6px 10px; border-radius: 8px; font-size: 11px; width: 220px; outline: none; direction: ltr; text-align: left; }
-                .share-btn { background: #00f2fe; color: #000; border: none; padding: 6px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 12px; }
-                
-                .subtitle { color: #8b949e; font-size: 14px; margin-bottom: 30px; text-align: center; }
+                h2 { color: #fff; margin-bottom: 8px; font-size: 26px; font-weight: 800; text-align: center; background: linear-gradient(90deg, #ff007f, #00f2fe); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+                .subtitle { text-align: center; color: #8b949e; font-size: 14px; margin-bottom: 30px; }
                 .themes-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; }
                 .theme-card { background: rgba(22, 27, 34, 0.7); backdrop-filter: blur(15px); border: 2px solid rgba(255,255,255,0.08); border-radius: 18px; padding: 18px; text-align: center; cursor: pointer; transition: all 0.3s; }
                 .theme-card:hover { transform: translateY(-5px); border-color: #00f2fe; box-shadow: 0 15px 30px rgba(0,242,254,0.15); }
@@ -295,7 +289,7 @@ app.get('/themes', (req, res) => {
                 .theme-desc { font-size: 11px; color: #8b949e; margin-bottom: 12px; }
                 .select-btn { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 8px 12px; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 12px; width: 100%; transition: 0.3s; }
                 .theme-card:hover .select-btn { background: linear-gradient(135deg, #ff0050, #00f2fe); border-color: transparent; }
-                .back-link { color: #8b949e; text-decoration: none; font-size: 14px; font-weight: 500; }
+                .back-link { display: inline-block; margin-bottom: 20px; color: #8b949e; text-decoration: none; font-size: 14px; font-weight: 500; }
                 .back-link:hover { color: #fff; }
                 #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px); background: linear-gradient(135deg, #ff0050, #00f2fe); color: #fff; padding: 12px 25px; border-radius: 50px; font-weight: 700; font-size: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: transform 0.4s; z-index: 1000; }
                 #toast.show { transform: translateX(-50%) translateY(0); }
@@ -303,16 +297,9 @@ app.get('/themes', (req, res) => {
         </head>
         <body>
             <div class="container">
-                <div class="top-bar">
-                    <a href="#" onclick="goBack()" class="back-link">← گەڕانەوە بۆ داشبۆرد</a>
-                    <div class="share-box">
-                        <span style="font-size: 12px; color: #00f2fe; font-weight: bold;">🔗 لینکی پڕۆفایل:</span>
-                        <input type="text" id="theme-profile-link" readonly>
-                        <button class="share-btn" onclick="copyThemeLink()">کۆپی</button>
-                    </div>
-                </div>
+                <a href="#" onclick="goBack()" class="back-link">← گەڕانەوە بۆ داشبۆرد</a>
                 <h2>🎨 هەڵبژاردنی دیزاینە نایابەکان</h2>
-                <div class="subtitle">لە نێوان بژاردەکاندا، شێوازی دڵخوازی خۆت هەڵبژێرە و ڕاستەوخۆ لەسەر پڕۆفایلەکەت دەردەکەوێت!</div>
+                <div class="subtitle">لە نێوان بژاردەکاندا، شێوازی دڵخوازی خۆت هەڵبژێرە!</div>
                 <div class="themes-grid" id="grid"></div>
             </div>
             <div id="toast">دیزاینەکە گۆڕدرا بۆ سەرکەوتوویی! 🚀</div>
@@ -321,15 +308,6 @@ app.get('/themes', (req, res) => {
                 const username = urlParams.get('user');
                 if(!username) window.location.href = '/';
                 function goBack() { window.location.href = '/dashboard?user=' + username; }
-
-                // دانانی لینکی ڕاستەقینەی پڕۆفایل لە بەشی سەرەوەی گالەرییەکەشدا
-                document.getElementById('theme-profile-link').value = window.location.origin + '/profile?user=' + username;
-                function copyThemeLink() {
-                    const copyText = document.getElementById('theme-profile-link');
-                    copyText.select();
-                    navigator.clipboard.writeText(copyText.value);
-                    alert('لینکی گشتی پڕۆفایلەکەت کۆپیکرا! 📋');
-                }
 
                 const grid = document.getElementById('grid');
                 const icons = ['🌌', '✨', '🔥', '👑', '🌅', '💎', '🔮', '🌊', '🌸', '🚀'];
@@ -548,7 +526,7 @@ app.get('/editor', (req, res) => {
                 function addLink() {
                     const title = document.getElementById('linkTitle').value;
                     const url = document.getElementById('linkUrl').value;
-                    if(!title || !url) return alert('تکایە هەردوو خانەی لینک پڕبکەرەوە!');
+                    if(!title || !url) return alert('تکایە خانەکان پڕبکەرەوە!');
                     linksList.push({ id: Date.now(), title, url });
                     document.getElementById('linkTitle').value = '';
                     document.getElementById('linkUrl').value = '';
