@@ -52,7 +52,6 @@ app.get('/', (req, res) => {
                     const password = document.getElementById('password').value;
                     if(!username || !password) return alert('تکایە هەردوو خانەکە پڕبکەرەوە!');
                     
-                    // ئەگەر یوزەری ئەدمن بوو، با ڕاستەوخۆ بچێتە پאנلی ئەدمن
                     if(username === 'admin' && password === 'admin123') {
                         window.location.href = '/admin';
                         return;
@@ -77,7 +76,7 @@ app.get('/', (req, res) => {
     `);
 });
 
-// پەنەلی تایبەتی ئەدمن (Admin Panel)
+// پەنەلی ئەدمن
 app.get('/admin', (req, res) => {
     res.send(`
         <!DOCTYPE html>
@@ -104,7 +103,6 @@ app.get('/admin', (req, res) => {
             <div class="container">
                 <a href="/" class="back-home">← چوونەدەرەوە لە ئەدمن</a>
                 <h1>👑 پەنەلی کۆنترۆڵی ئەدمن (Admin Dashboard)</h1>
-                
                 <div class="card">
                     <h2 style="font-size: 18px; color: #2ea043; margin-bottom: 10px;">📋 لیستی هەموو بەکارهێنەرە تۆمارکراوەکان</h2>
                     <table id="users-table">
@@ -164,12 +162,10 @@ app.get('/admin', (req, res) => {
     `);
 });
 
-// API بۆ ئەدمن تا هەموو یوزەرەکان ببینێت
 app.get('/api/admin/users', (req, res) => {
     res.json({ success: true, users });
 });
 
-// API بۆ سڕینەوە یان بانکردنی بەکارهێنەر لەلایەن ئەدمنەوە
 app.post('/api/admin/delete-user', (req, res) => {
     const { username } = req.body;
     if(users[username]) {
@@ -181,6 +177,7 @@ app.post('/api/admin/delete-user', (req, res) => {
     }
 });
 
+// داشبۆردی سەرەکی لەگەڵ دوگمەی ڕێکخستن و چوونەدرەوە (Log Out)
 app.get('/dashboard', (req, res) => {
     res.send(`
         <!DOCTYPE html>
@@ -203,6 +200,10 @@ app.get('/dashboard', (req, res) => {
                 .menu-btn:hover { border-color: #00f2fe; background: #30363d; transform: translateY(-2px); }
                 .btn-vip { border-color: #ffd700; color: #ffd700; }
                 .btn-vip:hover { background: #2a2510; border-color: #ffd700; }
+                .btn-settings { border-color: #1f6feb; color: #58a6ff; }
+                .btn-settings:hover { background: #111b27; }
+                .btn-logout { border-color: #da3633; color: #f85149; margin-top: 20px; }
+                .btn-logout:hover { background: #2c1515; }
                 .preview-btn { margin-top: 15px; background: linear-gradient(90deg, #ff0050, #00f2fe); border: none; color: white; cursor: pointer; }
             </style>
         </head>
@@ -220,7 +221,10 @@ app.get('/dashboard', (req, res) => {
                     <a href="#" onclick="openPage('editor')" class="menu-btn">⚙️ بەشی ڕێکخستنی پڕۆفایل و وێنە</a>
                     <a href="#" onclick="openPage('vip')" class="menu-btn btn-vip">⭐ بەشی دیزاینە VIPـەکان</a>
                     <a href="#" onclick="openPage('balance')" class="menu-btn" style="color: #2ea043; border-color: #2ea043;">💳 بەشی باڵانس و پارەدان</a>
+                    <a href="#" onclick="openPage('settings')" class="menu-btn btn-settings">🛠️ ڕێکخستنی هەژمار (Settings)</a>
+                    
                     <button class="menu-btn preview-btn" onclick="openPage('profile')">بینینی پڕۆفایلەکەم 🚀</button>
+                    <button class="menu-btn btn-logout" onclick="logout()">🚪 چوونە دەرەوە (Log Out)</button>
                 </div>
             </div>
             <script>
@@ -239,7 +243,13 @@ app.get('/dashboard', (req, res) => {
                     if(type === 'editor') window.location.href = '/editor?user=' + username;
                     if(type === 'vip') window.location.href = '/vip?user=' + username;
                     if(type === 'balance') window.location.href = '/balance?user=' + username;
+                    if(type === 'settings') window.location.href = '/settings?user=' + username;
                     if(type === 'profile') window.location.href = '/profile?user=' + username;
+                }
+                function logout() {
+                    if(confirm('دڵنیایت دەتەوێت لە هەژمارەکەت بچیتە دەرەوە؟')) {
+                        window.location.href = '/';
+                    }
                 }
             </script>
         </body>
@@ -247,6 +257,99 @@ app.get('/dashboard', (req, res) => {
     `);
 });
 
+// لاپەڕەی ڕێکخستنی هەژمار (Settings) بۆ گۆڕینی یوزەر و پاسۆرد
+app.get('/settings', (req, res) => {
+    res.send(`
+        <!DOCTYPE html>
+        <html lang="ckb" dir="rtl">
+        <head>
+            <meta charset="UTF-8">
+            <title>KurdBio - ڕێکخستنی هەژمار</title>
+            <style>
+                * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
+                body { background: #0d1117; color: #fff; display: flex; justify-content: center; min-height: 100vh; padding: 20px; }
+                .container { width: 100%; max-width: 450px; }
+                .card { background: #161b22; border: 1px solid #1f6feb; border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+                h2 { color: #58a6ff; margin-bottom: 15px; font-size: 20px; text-align: center; }
+                label { font-size: 13px; color: #8b949e; display: block; margin-top: 12px; margin-bottom: 5px; }
+                input { width: 100%; padding: 12px; background: #0d1117; border: 1px solid #30363d; color: #fff; border-radius: 10px; outline: none; }
+                .btn { width: 100%; padding: 14px; background: #1f6feb; color: #fff; border: none; border-radius: 10px; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 20px; }
+                .btn:hover { background: #388bfd; }
+                .back-link { display: inline-block; margin-bottom: 15px; color: #8b949e; text-decoration: none; font-size: 14px; }
+                .back-link:hover { color: #fff; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <a href="#" onclick="goBack()" class="back-link">← گەڕانەوە بۆ داشبۆرد</a>
+                <div class="card">
+                    <h2>🛠️ گۆڕینی زانیارییەکانی هەژمار</h2>
+                    <label>ناوی بەکارهێنەری نوێ (Username)</label>
+                    <input type="text" id="new-username" placeholder="یوزەرنەمی نوێ">
+                    <label>وشەی تێپەڕی نوێ (Password)</label>
+                    <input type="password" id="new-password" placeholder="پاسۆردی نوێ">
+                    <button class="btn" onclick="updateAccount()">نوێکردنەوەی زانیارییەکان 💾</button>
+                </div>
+            </div>
+            <script>
+                const urlParams = new URLSearchParams(window.location.search);
+                const username = urlParams.get('user');
+                if(!username) window.location.href = '/';
+                function goBack() { window.location.href = '/dashboard?user=' + username; }
+
+                async function loadUserData() {
+                    const res = await fetch('/api/get-bio/' + username);
+                    const data = await res.json();
+                    if(data.success) {
+                        document.getElementById('new-username').value = username;
+                    }
+                }
+                loadUserData();
+
+                async function updateAccount() {
+                    const newUsername = document.getElementById('new-username').value.trim();
+                    const newPassword = document.getElementById('new-password').value;
+                    if(!newUsername || !newPassword) return alert('تکایە خانەکان پڕبکەرەوە!');
+
+                    const res = await fetch('/api/update-account', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ oldUsername: username, newUsername, newPassword })
+                    });
+                    const data = await res.json();
+                    if(data.success) {
+                        alert('زانیارییەکان بە سەرکەوتوویی گۆڕدران!');
+                        window.location.href = '/dashboard?user=' + newUsername;
+                    } else {
+                        alert(data.message);
+                    }
+                }
+            </script>
+        </body>
+        </html>
+    `);
+});
+
+// API بۆ نوێکردنەوەی یوزەر و پاسۆرد
+app.post('/api/update-account', (req, res) => {
+    const { oldUsername, newUsername, newPassword } = req.body;
+    if(oldUsername !== newUsername && users[newUsername]) {
+        return res.json({ success: false, message: 'ئەم یوزەرنەمەیە پێشتر هەیە، تکایە یوزەرێکی تر هەڵبژێرە!' });
+    }
+    if(users[oldUsername]) {
+        users[newUsername] = { password: newPassword, balance: users[oldUsername].balance };
+        userProfiles[newUsername] = userProfiles[oldUsername];
+        if(oldUsername !== newUsername) {
+            delete users[oldUsername];
+            delete userProfiles[oldUsername];
+        }
+        res.json({ success: true });
+    } else {
+        res.json({ success: false, message: 'هەڵەیەک ڕووی دا!' });
+    }
+});
+
+// لاپەڕەی دروستکردنی لینک بایۆ و وێنە
 app.get('/editor', (req, res) => {
     res.send(`
         <!DOCTYPE html>
