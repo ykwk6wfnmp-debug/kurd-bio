@@ -1,20 +1,28 @@
 {
-  "name": "untitled-folderuntitled-folder",
-  "version": "1.0.0",
-  "description": "",
+  "name": "kurdbio",
+  "version": "2.0.0",
+  "description": "KurdBio — link-in-bio in Kurdish Sorani",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "node --watch server.js",
+    "test": "node --test test/*.test.js"
   },
-  "keywords": [],
+  "keywords": [
+    "linkinbio",
+    "kurdish"
+  ],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
+  "engines": {
+    "node": ">=20"
+  },
   "dependencies": {
-    "axios": "^1.19.0",
+    "bcryptjs": "^3.0.3",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "pg": "^8.22.0"
   }
 }
