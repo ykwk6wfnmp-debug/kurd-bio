@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 app.use(cors());
 
 let users = {}; 
@@ -151,26 +151,33 @@ app.get('/editor', (req, res) => {
                 h2 { color: #00f2fe; margin-bottom: 15px; font-size: 18px; }
                 label { font-size: 13px; color: #8b949e; display: block; margin-top: 10px; margin-bottom: 5px; }
                 input { width: 100%; padding: 12px; background: #0d1117; border: 1px solid #30363d; color: #fff; border-radius: 10px; outline: none; }
+                input[type="file"] { padding: 8px; cursor: pointer; }
                 .btn { width: 100%; padding: 14px; background: linear-gradient(90deg, #ff0050, #00f2fe); color: #fff; border: none; border-radius: 10px; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 15px; }
                 .btn-add { background: #2ea043; margin-top: 15px; }
                 .link-item { background: #0d1117; border: 1px solid #30363d; padding: 10px; border-radius: 10px; margin-top: 8px; display: flex; justify-content: space-between; align-items: center; }
                 .delete-btn { background: #da3633; border: none; color: white; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; }
                 .back-link { display: inline-block; margin-bottom: 15px; color: #8b949e; text-decoration: none; font-size: 14px; }
                 .back-link:hover { color: #fff; }
+                .preview-avatar { width: 70px; height: 70px; border-radius: 50%; object-fit: cover; margin-top: 10px; border: 2px solid #00f2fe; display: none; }
             </style>
         </head>
         <body>
             <div class="container">
                 <a href="#" onclick="goBack()" class="back-link">← گەڕانەوە بۆ داشبۆرد</a>
+                
                 <div class="card">
                     <h2>👤 زانیارییەکانی پڕۆفایل و وێنە</h2>
                     <label>ناوی تەواو یان پەیج</label>
                     <input type="text" id="name" placeholder="نموونە: مەبەست عەلی">
+                    
                     <label>کورتە دەق (Bio)</label>
                     <input type="text" id="bio" placeholder="دروستکەری ناوەڕۆک 🎬">
-                    <label>🖼️ لینکی وێنەی پڕۆفایل (Image URL)</label>
-                    <input type="url" id="avatar" placeholder="https://example.com/my-photo.jpg">
+
+                    <label>🖼️ هەڵبژاردنی وێنەی پڕۆفایل لە مۆبایلەوە</label>
+                    <input type="file" id="avatarFile" accept="image/*" onchange="previewImage(event)">
+                    <img id="image-preview" class="preview-avatar" alt="Preview">
                 </div>
+
                 <div class="card">
                     <h2>💬 بەستەری تۆڕە کۆمەڵایەتییەکان</h2>
                     <label>📱 واتسئەپ</label>
@@ -182,6 +189,7 @@ app.get('/editor', (req, res) => {
                     <label>📘 فەیسبووک</label>
                     <input type="text" id="facebook" placeholder="https://facebook.com/...">
                 </div>
+
                 <div class="card">
                     <h2>🔗 لینکە گشتییەکانی تر</h2>
                     <label>ناونیشانی لینک</label>
@@ -191,14 +199,31 @@ app.get('/editor', (req, res) => {
                     <button class="btn btn-add" onclick="addLink()">زیادکردنی لینک ➕</button>
                     <div id="links-container"></div>
                 </div>
+
                 <button class="btn" onclick="saveProfile()">💾 خەزنکردنی گۆڕانکارییەکان</button>
             </div>
             <script>
                 let linksList = [];
+                let base64Image = '';
                 const urlParams = new URLSearchParams(window.location.search);
                 const username = urlParams.get('user');
                 if(!username) window.location.href = '/';
                 function goBack() { window.location.href = '/dashboard?user=' + username; }
+
+                function previewImage(event) {
+                    const file = event.target.files[0];
+                    if(file) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            base64Image = e.target.result;
+                            const preview = document.getElementById('image-preview');
+                            preview.src = base64Image;
+                            preview.style.display = 'block';
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                }
+
                 async function loadData() {
                     const res = await fetch('/api/get-bio/' + username);
                     const data = await res.json();
@@ -206,7 +231,12 @@ app.get('/editor', (req, res) => {
                         const p = data.profile;
                         document.getElementById('name').value = p.name || '';
                         document.getElementById('bio').value = p.bio || '';
-                        document.getElementById('avatar').value = p.avatar || '';
+                        if(p.avatar) {
+                            base64Image = p.avatar;
+                            const preview = document.getElementById('image-preview');
+                            preview.src = base64Image;
+                            preview.style.display = 'block';
+                        }
                         if(p.socials) {
                             document.getElementById('whatsapp').value = p.socials.whatsapp || '';
                             document.getElementById('snapchat').value = p.socials.snapchat || '';
@@ -217,6 +247,7 @@ app.get('/editor', (req, res) => {
                     }
                 }
                 loadData();
+
                 function addLink() {
                     const title = document.getElementById('linkTitle').value;
                     const url = document.getElementById('linkUrl').value;
@@ -226,7 +257,9 @@ app.get('/editor', (req, res) => {
                     document.getElementById('linkUrl').value = '';
                     renderLinks();
                 }
+
                 function deleteLink(id) { linksList = linksList.filter(item => item.id !== id); renderLinks(); }
+
                 function renderLinks() {
                     const container = document.getElementById('links-container');
                     container.innerHTML = '';
@@ -234,18 +267,26 @@ app.get('/editor', (req, res) => {
                         container.innerHTML += '<div class="link-item"><div><strong>' + item.title + '</strong><div style="font-size: 11px; color: #8b949e;">' + item.url + '</div></div><button class="delete-btn" onclick="deleteLink(' + item.id + ')">سڕینەوە</button></div>';
                     });
                 }
+
                 async function saveProfile() {
                     const name = document.getElementById('name').value;
                     const bio = document.getElementById('bio').value;
-                    const avatar = document.getElementById('avatar').value;
                     const whatsapp = document.getElementById('whatsapp').value;
                     const snapchat = document.getElementById('snapchat').value;
                     const telegram = document.getElementById('telegram').value;
                     const facebook = document.getElementById('facebook').value;
+                    
                     const res = await fetch('/api/save-bio', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ username, name, bio, avatar, socials: { whatsapp, snapchat, telegram, facebook }, links: linksList })
+                        body: JSON.stringify({ 
+                            username, 
+                            name, 
+                            bio, 
+                            avatar: base64Image, 
+                            socials: { whatsapp, snapchat, telegram, facebook }, 
+                            links: linksList 
+                        })
                     });
                     const data = await res.json();
                     if(data.success) {
