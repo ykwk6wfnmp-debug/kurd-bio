@@ -51,6 +51,13 @@ app.get('/', (req, res) => {
                     const username = document.getElementById('username').value.trim();
                     const password = document.getElementById('password').value;
                     if(!username || !password) return alert('تکایە هەردوو خانەکە پڕبکەرەوە!');
+                    
+                    // ئەگەر یوزەری ئەدمن بوو، با ڕاستەوخۆ بچێتە پאנلی ئەدمن
+                    if(username === 'admin' && password === 'admin123') {
+                        window.location.href = '/admin';
+                        return;
+                    }
+
                     const endpoint = isRegisterMode ? '/api/register' : '/api/login';
                     const res = await fetch(endpoint, {
                         method: 'POST',
@@ -68,6 +75,110 @@ app.get('/', (req, res) => {
         </body>
         </html>
     `);
+});
+
+// پەنەلی تایبەتی ئەدمن (Admin Panel)
+app.get('/admin', (req, res) => {
+    res.send(`
+        <!DOCTYPE html>
+        <html lang="ckb" dir="rtl">
+        <head>
+            <meta charset="UTF-8">
+            <title>KurdBio - بەڕێوەبەری ئەدمن</title>
+            <style>
+                * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
+                body { background: #0d1117; color: #fff; padding: 20px; display: flex; justify-content: center; }
+                .container { width: 100%; max-width: 800px; }
+                h1 { color: #00f2fe; margin-bottom: 20px; font-size: 24px; text-align: center; }
+                .card { background: #161b22; border: 1px solid #30363d; border-radius: 15px; padding: 20px; margin-bottom: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+                table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+                th, td { border: 1px solid #30363d; padding: 12px; text-align: center; font-size: 14px; }
+                th { background: #21262d; color: #00f2fe; }
+                .delete-btn { background: #da3633; border: none; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; }
+                .delete-btn:hover { background: #b31d1d; }
+                .back-home { display: inline-block; margin-bottom: 20px; color: #8b949e; text-decoration: none; font-size: 14px; }
+                .back-home:hover { color: #fff; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <a href="/" class="back-home">← چوونەدەرەوە لە ئەدمن</a>
+                <h1>👑 پەنەلی کۆنترۆڵی ئەدمن (Admin Dashboard)</h1>
+                
+                <div class="card">
+                    <h2 style="font-size: 18px; color: #2ea043; margin-bottom: 10px;">📋 لیستی هەموو بەکارهێنەرە تۆمارکراوەکان</h2>
+                    <table id="users-table">
+                        <tr>
+                            <th>ناوی بەکارهێنەر (Username)</th>
+                            <th>وشەی تێپەڕ (Password)</th>
+                            <th>باڵانس ($)</th>
+                            <th>کردار (Action)</th>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <script>
+                async function loadAdminData() {
+                    const res = await fetch('/api/admin/users');
+                    const data = await res.json();
+                    if(data.success) {
+                        const table = document.getElementById('users-table');
+                        table.innerHTML = \`
+                            <tr>
+                                <th>ناوی بەکارهێنەر (Username)</th>
+                                <th>وشەی تێپەڕ (Password)</th>
+                                <th>باڵانس ($)</th>
+                                <th>کردار (Action)</th>
+                            </tr>
+                        \`;
+                        for(let user in data.users) {
+                            table.innerHTML += \`
+                                <tr>
+                                    <td>\${user}</td>
+                                    <td>\${data.users[user].password}</td>
+                                    <td>\${data.users[user].balance} $</td>
+                                    <td><button class="delete-btn" onclick="deleteUser('\${user}')">سڕینەوە / بانکردن</button></td>
+                                </tr>
+                            \`;
+                        }
+                    }
+                }
+                loadAdminData();
+
+                async function deleteUser(username) {
+                    if(!confirm('دڵنیایت لە سڕینەوەی ئەم بەکارهێنەرە؟')) return;
+                    const res = await fetch('/api/admin/delete-user', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username })
+                    });
+                    const data = await res.json();
+                    if(data.success) {
+                        alert('بەکارهێنەرەکە سڕایەوە!');
+                        loadAdminData();
+                    }
+                }
+            </script>
+        </body>
+        </html>
+    `);
+});
+
+// API بۆ ئەدمن تا هەموو یوزەرەکان ببینێت
+app.get('/api/admin/users', (req, res) => {
+    res.json({ success: true, users });
+});
+
+// API بۆ سڕینەوە یان بانکردنی بەکارهێنەر لەلایەن ئەدمنەوە
+app.post('/api/admin/delete-user', (req, res) => {
+    const { username } = req.body;
+    if(users[username]) {
+        delete users[username];
+        delete userProfiles[username];
+        res.json({ success: true });
+    } else {
+        res.json({ success: false, message: 'بەکارهێنەر نەدۆزرایەوە' });
+    }
 });
 
 app.get('/dashboard', (req, res) => {
@@ -164,20 +275,16 @@ app.get('/editor', (req, res) => {
         <body>
             <div class="container">
                 <a href="#" onclick="goBack()" class="back-link">← گەڕانەوە بۆ داشبۆرد</a>
-                
                 <div class="card">
                     <h2>👤 زانیارییەکانی پڕۆفایل و وێنە</h2>
                     <label>ناوی تەواو یان پەیج</label>
                     <input type="text" id="name" placeholder="نموونە: مەبەست عەلی">
-                    
                     <label>کورتە دەق (Bio)</label>
                     <input type="text" id="bio" placeholder="دروستکەری ناوەڕۆک 🎬">
-
                     <label>🖼️ هەڵبژاردنی وێنەی پڕۆفایل لە مۆبایلەوە</label>
                     <input type="file" id="avatarFile" accept="image/*" onchange="previewImage(event)">
                     <img id="image-preview" class="preview-avatar" alt="Preview">
                 </div>
-
                 <div class="card">
                     <h2>💬 بەستەری تۆڕە کۆمەڵایەتییەکان</h2>
                     <label>📱 واتسئەپ</label>
@@ -189,7 +296,6 @@ app.get('/editor', (req, res) => {
                     <label>📘 فەیسبووک</label>
                     <input type="text" id="facebook" placeholder="https://facebook.com/...">
                 </div>
-
                 <div class="card">
                     <h2>🔗 لینکە گشتییەکانی تر</h2>
                     <label>ناونیشانی لینک</label>
@@ -199,7 +305,6 @@ app.get('/editor', (req, res) => {
                     <button class="btn btn-add" onclick="addLink()">زیادکردنی لینک ➕</button>
                     <div id="links-container"></div>
                 </div>
-
                 <button class="btn" onclick="saveProfile()">💾 خەزنکردنی گۆڕانکارییەکان</button>
             </div>
             <script>
@@ -209,7 +314,6 @@ app.get('/editor', (req, res) => {
                 const username = urlParams.get('user');
                 if(!username) window.location.href = '/';
                 function goBack() { window.location.href = '/dashboard?user=' + username; }
-
                 function previewImage(event) {
                     const file = event.target.files[0];
                     if(file) {
@@ -223,7 +327,6 @@ app.get('/editor', (req, res) => {
                         reader.readAsDataURL(file);
                     }
                 }
-
                 async function loadData() {
                     const res = await fetch('/api/get-bio/' + username);
                     const data = await res.json();
@@ -247,7 +350,6 @@ app.get('/editor', (req, res) => {
                     }
                 }
                 loadData();
-
                 function addLink() {
                     const title = document.getElementById('linkTitle').value;
                     const url = document.getElementById('linkUrl').value;
@@ -257,9 +359,7 @@ app.get('/editor', (req, res) => {
                     document.getElementById('linkUrl').value = '';
                     renderLinks();
                 }
-
                 function deleteLink(id) { linksList = linksList.filter(item => item.id !== id); renderLinks(); }
-
                 function renderLinks() {
                     const container = document.getElementById('links-container');
                     container.innerHTML = '';
@@ -267,7 +367,6 @@ app.get('/editor', (req, res) => {
                         container.innerHTML += '<div class="link-item"><div><strong>' + item.title + '</strong><div style="font-size: 11px; color: #8b949e;">' + item.url + '</div></div><button class="delete-btn" onclick="deleteLink(' + item.id + ')">سڕینەوە</button></div>';
                     });
                 }
-
                 async function saveProfile() {
                     const name = document.getElementById('name').value;
                     const bio = document.getElementById('bio').value;
@@ -275,18 +374,10 @@ app.get('/editor', (req, res) => {
                     const snapchat = document.getElementById('snapchat').value;
                     const telegram = document.getElementById('telegram').value;
                     const facebook = document.getElementById('facebook').value;
-                    
                     const res = await fetch('/api/save-bio', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ 
-                            username, 
-                            name, 
-                            bio, 
-                            avatar: base64Image, 
-                            socials: { whatsapp, snapchat, telegram, facebook }, 
-                            links: linksList 
-                        })
+                        body: JSON.stringify({ username, name, bio, avatar: base64Image, socials: { whatsapp, snapchat, telegram, facebook }, links: linksList })
                     });
                     const data = await res.json();
                     if(data.success) {
