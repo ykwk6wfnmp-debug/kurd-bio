@@ -192,7 +192,7 @@ app.post('/api/register', (req, res) => {
     res.json({ success: true });
 });
 
-// داشبۆردی سەرەکی
+// داشبۆردی سەرەکی (لێرەدا دڵنیا بووینەوە کە لینکی پڕۆفایل ڕاستەوخۆ `/profile?user=` دەردەكات نەک `/themes`)
 app.get('/dashboard', (req, res) => {
     res.send(`
         <!DOCTYPE html>
@@ -244,7 +244,7 @@ app.get('/dashboard', (req, res) => {
                 const username = urlParams.get('user');
                 if(!username) window.location.href = '/';
                 
-                // دڵنیابوونەوە لەوەی لینکی گشتی ڕاستەوخۆ `/profile?user=` دەبێت
+                // دڵنیابوونەوە لەوەی لینکی گشتی کاتێک کۆپی دەبێت تەنها `/profile?user=` دەبێت نەک `/themes`
                 document.getElementById('profile-link').value = window.location.origin + '/profile?user=' + username;
                 
                 function copyLink() {
@@ -268,8 +268,24 @@ app.get('/dashboard', (req, res) => {
     `);
 });
 
-// گالەری ١٠٠ دیزاینە ناوازەکە (به شێوازی تابلۆی سەلامەت و بێهەڵە)
+// گالەری ١٠٠ دیزاینە ناوازەکە بە شێوازی تابلۆی خاوێن و بێهەڵە
 app.get('/themes', (req, res) => {
+    let cardsHtml = '';
+    let icons = ['🌌', '✨', '🔥', '👑', '🌅', '💎', '🔮', '🌊', '🌸', '🚀', '❄️', '🏜️', '🌲', '❤️', '🌙', '🛡️', '🌠', '🍃', '🍂', '⚡', '🟢', '🔷', '🪄', '🌋', '🌴', '🍯', '💠', '🌷', '🪨', '🖤'];
+
+    for(let i = 1; i <= 100; i++) {
+        let themeId = 'theme_' + i;
+        let icon = icons[(i - 1) % icons.length];
+        cardsHtml += `
+            <div class="theme-card" onclick="applyTheme('${themeId}')">
+                <div class="mini-preview">${icon}</div>
+                <div class="theme-title">دیزاینی ژمارە ${i}</div>
+                <div class="theme-desc">شێوازی مۆدێرن و ناوازە</div>
+                <button class="select-btn">هەڵبژاردن ✨</button>
+            </div>
+        `;
+    }
+
     res.send(`
         <!DOCTYPE html>
         <html lang="ckb" dir="rtl">
@@ -301,7 +317,9 @@ app.get('/themes', (req, res) => {
                 <a href="#" onclick="goBack()" class="back-link">← گەڕانەوە بۆ داشبۆرد</a>
                 <h2>🎨 هەڵبژاردنی دیزاینە نایابەکان</h2>
                 <div class="subtitle">لە نێوان بژاردەکاندا، شێوازی دڵخوازی خۆت هەڵبژێرە!</div>
-                <div class="themes-grid" id="grid"></div>
+                <div class="themes-grid">
+                    ${cardsHtml}
+                </div>
             </div>
             <div id="toast">دیزاینەکە گۆڕدرا بۆ سەرکەوتوویی! 🚀</div>
             <script>
@@ -309,19 +327,6 @@ app.get('/themes', (req, res) => {
                 const username = urlParams.get('user');
                 if(!username) window.location.href = '/';
                 function goBack() { window.location.href = '/dashboard?user=' + username; }
-
-                const grid = document.getElementById('grid');
-                for(let i = 1; i <= 100; i++) {
-                    grid.innerHTML += \`
-                        <div class="theme-card" onclick="applyTheme('theme_\${i}')">
-                            <div class="mini-preview">🎨</div>
-                            <div class="theme-title">دیزاینی ژمارە \${i}</div>
-                            <div class="theme-desc">شێوازی مۆدێرن و ناوازە</div>
-                            <button class="select-btn">هەڵبژاردن ✨</button>
-                        </div>
-                    \`;
-                }
-
                 async function applyTheme(themeName) {
                     const res = await fetch('/api/save-theme', {
                         method: 'POST',
