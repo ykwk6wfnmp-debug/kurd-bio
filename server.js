@@ -192,7 +192,7 @@ app.post('/api/register', (req, res) => {
     res.json({ success: true });
 });
 
-// داشبۆردی سەرەکی کە لێرەدا لینکی ڕاستەقینەی پڕۆفایل (`/profile`) دادەنێین نەک تەنها `/themes`
+// داشبۆردی سەرەکی
 app.get('/dashboard', (req, res) => {
     res.send(`
         <!DOCTYPE html>
@@ -243,10 +243,7 @@ app.get('/dashboard', (req, res) => {
                 const urlParams = new URLSearchParams(window.location.search);
                 const username = urlParams.get('user');
                 if(!username) window.location.href = '/';
-                
-                // لێرەدا لینکی پڕۆفایل دەبەستینەوە بە `/profile?user=` نەک `/themes`
                 document.getElementById('profile-link').value = window.location.origin + '/profile?user=' + username;
-                
                 function copyLink() {
                     const copyText = document.getElementById('profile-link');
                     copyText.select();
@@ -268,8 +265,49 @@ app.get('/dashboard', (req, res) => {
     `);
 });
 
-// گالەری ١٠٠ دیزاینە ناوازەکە
+// گالەری ١٠٠ دیزاینە ناوازەکە بە شێوازی تابلۆی خاوێن و بێهەڵە
 app.get('/themes', (req, res) => {
+    let cardsHtml = '';
+    const baseThemes = [
+        {name: 'شۆخی تاریک', desc: 'تاریکی مۆدێرن', bg: 'linear-gradient(135deg, #0d1117, #161b22)', color: '#fff'},
+        {name: 'نێۆن لایت', desc: 'شینی درەوشاوە', bg: '#050505', color: '#00f2fe'},
+        {name: 'سایبەرپانک', desc: 'زەرد و ڕەش', bg: '#ffe600', color: '#000'},
+        {name: 'زێڕینی شاهانە', desc: 'شاهانەی درەوشاوە', bg: '#1a1a1a', color: '#ffd700'},
+        {name: 'خۆراوا بوون', desc: 'نارنجی و پەمەیی', bg: 'linear-gradient(135deg, #ff7e5f, #feb47b)', color: '#fff'},
+        {name: 'زمردی سەوز', desc: 'سەوزی سروشتی', bg: '#064e3b', color: '#34d399'},
+        {name: 'مۆر و تەمومژ', desc: 'مۆری کاڵ', bg: 'linear-gradient(135deg, #6b21a8, #c084fc)', color: '#fff'},
+        {name: 'قوڵایی ئۆقیانووس', desc: 'شینی دەریا', bg: 'linear-gradient(135deg, #1e3a8a, #93c5fd)', color: '#fff'},
+        {name: 'پەمەیی خۆشەویستی', desc: 'ڕۆماتیکی نەرم', bg: 'linear-gradient(135deg, #831843, #f472b6)', color: '#fff'},
+        {name: 'بۆشایی ئاسمان', desc: 'ئەستێرەیی', bg: '#18181b', color: '#a855f7'},
+        {name: 'سەهۆڵبەندان', desc: 'شینی سارد', bg: '#0f172a', color: '#38bdf8'},
+        {name: 'خۆڵی بیابان', desc: 'نارنجی تۆخ', bg: '#451a03', color: '#fb923c'},
+        {name: 'دارستانی چڕ', desc: 'سەوزی کاڵ', bg: 'linear-gradient(135deg, #047857, #10b981)', color: '#fff'},
+        {name: 'یاقوتی سوور', desc: 'سووری درەوشاوە', bg: 'linear-gradient(135deg, #be123c, #fb7185)', color: '#fff'},
+        {name: 'نیوەشەوی ئیندیگۆ', desc: 'شین و مۆر', bg: 'linear-gradient(135deg, #312e81, #818cf8)', color: '#fff'},
+        {name: 'کاربۆن فایبەر', desc: 'خەڵووزی مۆدێرن', bg: '#27272a', color: '#71717a'},
+        {name: 'گەلەکسی پۆڵ', desc: 'مۆر و سوور', bg: 'linear-gradient(135deg, #4c1d95, #f43f5e)', color: '#fff'},
+        {name: 'نەعنایی فرێش', desc: 'سەوزی سەرنجڕاکێش', bg: 'linear-gradient(135deg, #065f46, #34d399)', color: '#fff'},
+        {name: 'پایزی زێڕین', desc: 'زەرد و قاوەیی', bg: 'linear-gradient(135deg, #78350f, #fde047)', color: '#fff'},
+        {name: 'وایۆلێتی کارەبایی', desc: 'مۆری پڕ تیشک', bg: 'linear-gradient(135deg, #581c87, #e879f9)', color: '#fff'}
+    ];
+    let icons = ['🌌', '✨', '🔥', '👑', '🌅', '💎', '🔮', '🌊', '🌸', '🚀', '❄️', '🏜️', '🌲', '❤️', '🌙', '🛡️', '🌠', '🍃', '🍂', '⚡', '🟢', '🔷', '🪄', '🌋', '🌴', '🍯', '💠', '🌷', '🪨', '🖤'];
+
+    for(let i = 1; i <= 100; i++) {
+        let base = baseThemes[(i - 1) % baseThemes.length];
+        let themeId = 'theme_' + i;
+        let tName = i + '. ' + base.name + (i > 20 ? ' (' + i + ')' : '');
+        let icon = icons[(i - 1) % icons.length];
+        
+        cardsHtml += `
+            <div class="theme-card" onclick="applyTheme('${themeId}')">
+                <div class="mini-preview" style="background: ${base.bg}; color: ${base.color};">${icon}</div>
+                <div class="theme-title">${tName}</div>
+                <div class="theme-desc">${base.desc}</div>
+                <button class="select-btn">هەڵبژاردن ✨</button>
+            </div>
+        `;
+    }
+
     res.send(`
         <!DOCTYPE html>
         <html lang="ckb" dir="rtl">
@@ -286,7 +324,6 @@ app.get('/themes', (req, res) => {
                 .theme-card { background: rgba(22, 27, 34, 0.7); backdrop-filter: blur(15px); border: 2px solid rgba(255,255,255,0.08); border-radius: 18px; padding: 18px; text-align: center; cursor: pointer; transition: all 0.3s; }
                 .theme-card:hover { transform: translateY(-5px); border-color: #00f2fe; box-shadow: 0 15px 30px rgba(0,242,254,0.15); }
                 .mini-preview { width: 45px; height: 45px; border-radius: 50%; margin: 0 auto 10px auto; display: flex; align-items: center; justify-content: center; font-size: 16px; border: 2px solid rgba(255,255,255,0.2); }
-                
                 .theme-title { font-weight: 700; font-size: 13px; margin-bottom: 4px; color: #fff; }
                 .theme-desc { font-size: 11px; color: #8b949e; margin-bottom: 12px; }
                 .select-btn { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 8px 12px; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 12px; width: 100%; transition: 0.3s; }
@@ -302,50 +339,8 @@ app.get('/themes', (req, res) => {
                 <a href="#" onclick="goBack()" class="back-link">← گەڕانەوە بۆ داشبۆرد</a>
                 <h2>🎨 ١٠٠ دیزاینە نایابەکەی پڕۆفایل</h2>
                 <div class="subtitle">لە نێوان سەد دیزاینە پێشکەوتووەکەدا، شێوازی دڵخوازی خۆت هەڵبژێرە!</div>
-                
                 <div class="themes-grid">
-                    <script>
-                        const baseThemes = [
-                            {name: 'شۆخی تاریک', desc: 'تاریکی مۆدێرن', bg: 'linear-gradient(135deg, #0d1117, #161b22)', color: '#fff'},
-                            {name: 'نێۆن لایت', desc: 'شینی درەوشاوە', bg: '#050505', color: '#00f2fe'},
-                            {name: 'سایبەرپانک', desc: 'زەرد و ڕەش', bg: '#ffe600', color: '#000'},
-                            {name: 'زێڕینی شاهانە', desc: 'شاهانەی درەوشاوە', bg: '#1a1a1a', color: '#ffd700'},
-                            {name: 'خۆراوا بوون', desc: 'نارنجی و پەمەیی', bg: 'linear-gradient(135deg, #ff7e5f, #feb47b)', color: '#fff'},
-                            {name: 'زمردی سەوز', desc: 'سەوزی سروشتی', bg: '#064e3b', color: '#34d399'},
-                            {name: 'مۆر و تەمومژ', desc: 'مۆری کاڵ', bg: 'linear-gradient(135deg, #6b21a8, #c084fc)', color: '#fff'},
-                            {name: 'قوڵایی ئۆقیانووس', desc: 'شینی دەریا', bg: 'linear-gradient(135deg, #1e3a8a, #93c5fd)', color: '#fff'},
-                            {name: 'پەمەیی خۆشەویستی', desc: 'ڕۆماتیکی نەرم', bg: 'linear-gradient(135deg, #831843, #f472b6)', color: '#fff'},
-                            {name: 'بۆشایی ئاسمان', desc: 'ئەستێرەیی', bg: '#18181b', color: '#a855f7'},
-                            {name: 'سەهۆڵبەندان', desc: 'شینی سارد', bg: '#0f172a', color: '#38bdf8'},
-                            {name: 'خۆڵی بیابان', desc: 'نارنجی تۆخ', bg: '#451a03', color: '#fb923c'},
-                            {name: 'دارستانی چڕ', desc: 'سەوزی کاڵ', bg: 'linear-gradient(135deg, #047857, #10b981)', color: '#fff'},
-                            {name: 'یاقوتی سوور', desc: 'سووری درەوشاوە', bg: 'linear-gradient(135deg, #be123c, #fb7185)', color: '#fff'},
-                            {name: 'نیوەشەوی ئیندیگۆ', desc: 'شین و مۆر', bg: 'linear-gradient(135deg, #312e81, #818cf8)', color: '#fff'},
-                            {name: 'کاربۆن فایبەر', desc: 'خەڵووزی مۆدێرن', bg: '#27272a', color: '#71717a'},
-                            {name: 'گەلەکسی پۆڵ', desc: 'مۆر و سوور', bg: 'linear-gradient(135deg, #4c1d95, #f43f5e)', color: '#fff'},
-                            {name: 'نەعنایی فرێش', desc: 'سەوزی سەرنجڕاکێش', bg: 'linear-gradient(135deg, #065f46, #34d399)', color: '#fff'},
-                            {name: 'پایزی زێڕین', desc: 'زەرد و قاوەیی', bg: 'linear-gradient(135deg, #78350f, #fde047)', color: '#fff'},
-                            {name: 'وایۆلێتی کارەبایی', desc: 'مۆری پڕ تیشک', bg: 'linear-gradient(135deg, #581c87, #e879f9)', color: '#fff'}
-                        ];
-
-                        let icons = ['🌌', '✨', '🔥', '👑', '🌅', '💎', '🔮', '🌊', '🌸', '🚀', '❄️', '🏜️', '🌲', '❤️', '🌙', '🛡️', '🌠', '🍃', '🍂', '⚡', '🟢', '🔷', '🪄', '🌋', '🌴', '🍯', '💠', '🌷', '🪨', '🖤'];
-
-                        for(let i = 1; i <= 100; i++) {
-                            let base = baseThemes[(i - 1) % baseThemes.length];
-                            let themeId = 'theme_' + i;
-                            let tName = i + '. ' + base.name + (i > 20 ? ' (' + i + ')' : '');
-                            let icon = icons[(i - 1) % icons.length];
-                            
-                            document.write(\`
-                                <div class="theme-card" onclick="applyTheme('\${themeId}')">
-                                    <div class="mini-preview" style="background: \${base.bg}; color: \${base.color};">\${icon}</div>
-                                    <div class="theme-title">\${tName}</div>
-                                    <div class="theme-desc">\${base.desc}</div>
-                                    <button class="select-btn">هەڵبژاردن ✨</button>
-                                </div>
-                            \`);
-                        }
-                    </script>
+                    ${cardsHtml}
                 </div>
             </div>
             <div id="toast">دیزاینەکە گۆڕدرا بۆ سەرکەوتوویی! 🚀</div>
@@ -557,7 +552,7 @@ app.get('/editor', (req, res) => {
                 function addLink() {
                     const title = document.getElementById('linkTitle').value;
                     const url = document.getElementById('linkUrl').value;
-                    if(!title || !url) return alert('تکایە خانەکان پڕبکەرەوە!');
+                    if(!title || !url) return alert('تکایە هەردوو خانەی لینک پڕبکەرەوە!');
                     linksList.push({ id: Date.now(), title, url });
                     document.getElementById('linkTitle').value = '';
                     document.getElementById('linkUrl').value = '';
