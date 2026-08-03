@@ -192,7 +192,7 @@ app.post('/api/register', (req, res) => {
     res.json({ success: true });
 });
 
-// داشبۆردی سەرەکی
+// داشبۆردی سەرەکی کە لێرەدا لینکی ڕاستەقینەی پڕۆفایل (`/profile`) دادەنێین نەک تەنها `/themes`
 app.get('/dashboard', (req, res) => {
     res.send(`
         <!DOCTYPE html>
@@ -226,7 +226,7 @@ app.get('/dashboard', (req, res) => {
                 <div class="card">
                     <h2>بەخێر هاتیت بۆ داشبۆردەکەت ✨</h2>
                     <div class="link-box">
-                        <label>🔗 لینکی تایبەتی پڕۆفایلەکەت:</label>
+                        <label>🔗 لینکی گشتی پڕۆفایلەکەت بۆ خەڵکی:</label>
                         <div class="link-input-group">
                             <input type="text" id="profile-link" readonly>
                             <button class="copy-btn" onclick="copyLink()">کۆپی</button>
@@ -243,7 +243,10 @@ app.get('/dashboard', (req, res) => {
                 const urlParams = new URLSearchParams(window.location.search);
                 const username = urlParams.get('user');
                 if(!username) window.location.href = '/';
+                
+                // لێرەدا لینکی پڕۆفایل دەبەستینەوە بە `/profile?user=` نەک `/themes`
                 document.getElementById('profile-link').value = window.location.origin + '/profile?user=' + username;
+                
                 function copyLink() {
                     const copyText = document.getElementById('profile-link');
                     copyText.select();
@@ -302,7 +305,6 @@ app.get('/themes', (req, res) => {
                 
                 <div class="themes-grid">
                     <script>
-                        // دروستکردنی ١٠٠ دیزاینی جیاواز بە شێوازی داینامیکی
                         const baseThemes = [
                             {name: 'شۆخی تاریک', desc: 'تاریکی مۆدێرن', bg: 'linear-gradient(135deg, #0d1117, #161b22)', color: '#fff'},
                             {name: 'نێۆن لایت', desc: 'شینی درەوشاوە', bg: '#050505', color: '#00f2fe'},
@@ -592,7 +594,7 @@ app.get('/editor', (req, res) => {
     `);
 });
 
-// پڕۆفایلی گشتی پشتگیری بۆ هەموو ١٠٠ دیزاینەکە
+// پڕۆفایلی گشتی
 app.get('/profile', (req, res) => {
     res.send(`
         <!DOCTYPE html>
@@ -649,7 +651,6 @@ app.get('/profile', (req, res) => {
                 const urlParams = new URLSearchParams(window.location.search);
                 const username = urlParams.get('user');
                 
-                // کۆمەڵێک ڕەنگی شاهانە و مۆدێرن بۆ ١٠٠ دیزاینەکە
                 const dynamicColors = [
                     'linear-gradient(135deg, #07090e, #161b22)', '#050505', '#ffe600', '#1a1a1a', 
                     'linear-gradient(135deg, #ff7e5f, #feb47b)', '#064e3b', 'linear-gradient(135deg, #6b21a8, #c084fc)',
@@ -673,7 +674,6 @@ app.get('/profile', (req, res) => {
                             imgEl.style.display = 'block';
                         }
                         
-                        // دیاریکردنی ڕەنگی باکگراوند بۆ هەر یەکێک لە ١٠٠ دیزاینەکە
                         if(p.theme && p.theme.startsWith('theme_')) {
                             let index = parseInt(p.theme.replace('theme_', '')) - 1;
                             document.body.style.background = dynamicColors[index % dynamicColors.length];
