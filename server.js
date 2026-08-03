@@ -469,7 +469,7 @@ app.get('/profile', (req, res) => {
                     <div id="p-socials" class="links-container" style="margin-bottom: 12px;"></div>
                     <div id="p-links" class="links-container"></div>
                 </div>
-                <div class="footer">دروستکراوە بە <span>KurdBio</span> 🚀</div>
+                <div class="footer">دروستکراوە لە <span>Kurd Bio</span> 🚀</div>
             </div>
             <script>
                 const urlParams = new URLSearchParams(window.location.search);
