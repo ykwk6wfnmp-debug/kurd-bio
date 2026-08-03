@@ -192,7 +192,7 @@ app.post('/api/register', (req, res) => {
     res.json({ success: true });
 });
 
-// داشبۆردی سەرەکی
+// داشبۆردی سەرەکی (لێرەدا دڵنیابووینەوە کە لینکی پڕۆفایل ڕاستەوخۆ دەچێتە سەر `/profile?user=...`)
 app.get('/dashboard', (req, res) => {
     res.send(`
         <!DOCTYPE html>
@@ -243,7 +243,10 @@ app.get('/dashboard', (req, res) => {
                 const urlParams = new URLSearchParams(window.location.search);
                 const username = urlParams.get('user');
                 if(!username) window.location.href = '/';
+                
+                // لێرەدا بە وردی دڵنیا دەبینەوە کە لینکی کۆپیکراو تەنها `/profile?user=`ـە نەک `/themes`
                 document.getElementById('profile-link').value = window.location.origin + '/profile?user=' + username;
+                
                 function copyLink() {
                     const copyText = document.getElementById('profile-link');
                     copyText.select();
@@ -265,7 +268,7 @@ app.get('/dashboard', (req, res) => {
     `);
 });
 
-// گالەری ١٠٠ دیزاینە ناوازەکە بە شێوازی تابلۆی خاوێن و بێهەڵە
+// گالەری ١٠٠ دیزاینە ناوازەکە
 app.get('/themes', (req, res) => {
     let cardsHtml = '';
     const baseThemes = [
@@ -552,7 +555,7 @@ app.get('/editor', (req, res) => {
                 function addLink() {
                     const title = document.getElementById('linkTitle').value;
                     const url = document.getElementById('linkUrl').value;
-                    if(!title || !url) return alert('تکایە هەردوو خانەی لینک پڕبکەرەوە!');
+                    if(!title || !url) return alert('تکایە خانەکان پڕبکەرەوە!');
                     linksList.push({ id: Date.now(), title, url });
                     document.getElementById('linkTitle').value = '';
                     document.getElementById('linkUrl').value = '';
