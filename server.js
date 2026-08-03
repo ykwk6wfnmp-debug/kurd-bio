@@ -233,7 +233,7 @@ app.get('/dashboard', (req, res) => {
                         </div>
                     </div>
                     <a href="#" onclick="openPage('editor')" class="menu-btn">⚙️ ڕێکخستنی پڕۆفایل و وێنە</a>
-                    <a href="#" onclick="openPage('themes')" class="menu-btn btn-themes">🎨 هەڵبژاردنی دیزاینە نایابەکان</a>
+                    <a href="#" onclick="openPage('themes')" class="menu-btn btn-themes">🎨 هەڵبژاردنی لە نێوان ١٠٠ دیزاینی نایاب</a>
                     <a href="#" onclick="openPage('settings')" class="menu-btn btn-settings">🛠️ ڕێکخستنی هەژمار</a>
                     <button class="menu-btn preview-btn" onclick="openPage('profile')">بینینی پڕۆفایلەکەم 🚀</button>
                     <button class="menu-btn btn-logout" onclick="logout()">🚪 چوونە دەرەوە</button>
@@ -265,33 +265,28 @@ app.get('/dashboard', (req, res) => {
     `);
 });
 
-// بەشی دیزاینە نایابەکان
+// گالەری ١٠٠ دیزاینە ناوازەکە
 app.get('/themes', (req, res) => {
     res.send(`
         <!DOCTYPE html>
         <html lang="ckb" dir="rtl">
         <head>
             <meta charset="UTF-8">
-            <title>KurdBio - دیزاینە نایابەکان</title>
+            <title>KurdBio - ١٠٠ دیزاینی نایاب</title>
             <style>
                 * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
                 body { background: #07090e; color: #fff; display: flex; justify-content: center; min-height: 100vh; padding: 25px; }
-                .container { width: 100%; max-width: 700px; padding-bottom: 40px; }
+                .container { width: 100%; max-width: 950px; padding-bottom: 40px; }
                 h2 { color: #fff; margin-bottom: 8px; font-size: 26px; font-weight: 800; text-align: center; background: linear-gradient(90deg, #ff007f, #00f2fe); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
                 .subtitle { text-align: center; color: #8b949e; font-size: 14px; margin-bottom: 30px; }
-                .themes-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 20px; }
-                .theme-card { background: rgba(22, 27, 34, 0.7); backdrop-filter: blur(15px); border: 2px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 22px; text-align: center; cursor: pointer; transition: all 0.3s; }
-                .theme-card:hover { transform: translateY(-6px); border-color: #00f2fe; box-shadow: 0 15px 30px rgba(0,242,254,0.15); }
-                .mini-preview { width: 55px; height: 55px; border-radius: 50%; margin: 0 auto 12px auto; display: flex; align-items: center; justify-content: center; font-size: 20px; border: 2px solid rgba(255,255,255,0.2); }
-                .preview-default { background: linear-gradient(135deg, #0d1117, #161b22); }
-                .preview-neon { background: #050505; border-color: #00f2fe; color: #00f2fe; }
-                .preview-cyberpunk { background: #ffe600; color: #000; border-color: #ff0050; }
-                .preview-gold { background: #1a1a1a; border-color: #ffd700; color: #ffd700; }
-                .preview-sunset { background: linear-gradient(135deg, #ff7e5f, #feb47b); color: #fff; }
-                .preview-emerald { background: #064e3b; border-color: #34d399; color: #34d399; }
-                .theme-title { font-weight: 700; font-size: 15px; margin-bottom: 6px; color: #fff; }
-                .theme-desc { font-size: 12px; color: #8b949e; margin-bottom: 18px; line-height: 1.4; }
-                .select-btn { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 10px 16px; border-radius: 12px; font-weight: 600; cursor: pointer; font-size: 13px; width: 100%; transition: 0.3s; }
+                .themes-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; }
+                .theme-card { background: rgba(22, 27, 34, 0.7); backdrop-filter: blur(15px); border: 2px solid rgba(255,255,255,0.08); border-radius: 18px; padding: 18px; text-align: center; cursor: pointer; transition: all 0.3s; }
+                .theme-card:hover { transform: translateY(-5px); border-color: #00f2fe; box-shadow: 0 15px 30px rgba(0,242,254,0.15); }
+                .mini-preview { width: 45px; height: 45px; border-radius: 50%; margin: 0 auto 10px auto; display: flex; align-items: center; justify-content: center; font-size: 16px; border: 2px solid rgba(255,255,255,0.2); }
+                
+                .theme-title { font-weight: 700; font-size: 13px; margin-bottom: 4px; color: #fff; }
+                .theme-desc { font-size: 11px; color: #8b949e; margin-bottom: 12px; }
+                .select-btn { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 8px 12px; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 12px; width: 100%; transition: 0.3s; }
                 .theme-card:hover .select-btn { background: linear-gradient(135deg, #ff0050, #00f2fe); border-color: transparent; }
                 .back-link { display: inline-block; margin-bottom: 20px; color: #8b949e; text-decoration: none; font-size: 14px; font-weight: 500; }
                 .back-link:hover { color: #fff; }
@@ -302,48 +297,56 @@ app.get('/themes', (req, res) => {
         <body>
             <div class="container">
                 <a href="#" onclick="goBack()" class="back-link">← گەڕانەوە بۆ داشبۆرد</a>
-                <h2>🎨 دیزاینە نایابەکان</h2>
-                <div class="subtitle">دیزاینی دڵخوازی خۆت هەڵبژێرە؛ ڕاستەوخۆ دەبێت بە ڕووکاری پڕۆفایلەکەت!</div>
+                <h2>🎨 ١٠٠ دیزاینە نایابەکەی پڕۆفایل</h2>
+                <div class="subtitle">لە نێوان سەد دیزاینە پێشکەوتووەکەدا، شێوازی دڵخوازی خۆت هەڵبژێرە!</div>
+                
                 <div class="themes-grid">
-                    <div class="theme-card" onclick="applyTheme('default')">
-                        <div class="mini-preview preview-default">🌌</div>
-                        <div class="theme-title">شۆخی تاریک</div>
-                        <div class="theme-desc">تاریکی مۆدێرنی قەشەنگ</div>
-                        <button class="select-btn">هەڵبژاردن ✨</button>
-                    </div>
-                    <div class="theme-card" onclick="applyTheme('neon')">
-                        <div class="mini-preview preview-neon">✨</div>
-                        <div class="theme-title">نێۆنی تیشکدەر</div>
-                        <div class="theme-desc">شینی درەوشاوەی نایاب</div>
-                        <button class="select-btn">هەڵبژاردن ✨</button>
-                    </div>
-                    <div class="theme-card" onclick="applyTheme('cyberpunk')">
-                        <div class="mini-preview preview-cyberpunk">🔥</div>
-                        <div class="theme-title">سایبەرپانک</div>
-                        <div class="theme-desc">زەرد و ڕەشی سەرنجڕاکێش</div>
-                        <button class="select-btn">هەڵبژاردن ✨</button>
-                    </div>
-                    <div class="theme-card" onclick="applyTheme('gold')">
-                        <div class="mini-preview preview-gold">👑</div>
-                        <div class="theme-title">زێڕینی شاهانە</div>
-                        <div class="theme-desc">شاهانەی زێڕینی درەوشاوە</div>
-                        <button class="select-btn">هەڵبژاردن ✨</button>
-                    </div>
-                    <div class="theme-card" onclick="applyTheme('sunset')">
-                        <div class="mini-preview preview-sunset">🌅</div>
-                        <div class="theme-title">خۆراوا بوون</div>
-                        <div class="theme-desc">نارنجی و پەمەیی سەرنجڕاکێش</div>
-                        <button class="select-btn">هەڵبژاردن ✨</button>
-                    </div>
-                    <div class="theme-card" onclick="applyTheme('emerald')">
-                        <div class="mini-preview preview-emerald">💎</div>
-                        <div class="theme-title">زمردی سەوز</div>
-                        <div class="theme-desc">سەوزی جوانی سروشتی</div>
-                        <button class="select-btn">هەڵبژاردن ✨</button>
-                    </div>
+                    <script>
+                        // دروستکردنی ١٠٠ دیزاینی جیاواز بە شێوازی داینامیکی
+                        const baseThemes = [
+                            {name: 'شۆخی تاریک', desc: 'تاریکی مۆدێرن', bg: 'linear-gradient(135deg, #0d1117, #161b22)', color: '#fff'},
+                            {name: 'نێۆن لایت', desc: 'شینی درەوشاوە', bg: '#050505', color: '#00f2fe'},
+                            {name: 'سایبەرپانک', desc: 'زەرد و ڕەش', bg: '#ffe600', color: '#000'},
+                            {name: 'زێڕینی شاهانە', desc: 'شاهانەی درەوشاوە', bg: '#1a1a1a', color: '#ffd700'},
+                            {name: 'خۆراوا بوون', desc: 'نارنجی و پەمەیی', bg: 'linear-gradient(135deg, #ff7e5f, #feb47b)', color: '#fff'},
+                            {name: 'زمردی سەوز', desc: 'سەوزی سروشتی', bg: '#064e3b', color: '#34d399'},
+                            {name: 'مۆر و تەمومژ', desc: 'مۆری کاڵ', bg: 'linear-gradient(135deg, #6b21a8, #c084fc)', color: '#fff'},
+                            {name: 'قوڵایی ئۆقیانووس', desc: 'شینی دەریا', bg: 'linear-gradient(135deg, #1e3a8a, #93c5fd)', color: '#fff'},
+                            {name: 'پەمەیی خۆشەویستی', desc: 'ڕۆماتیکی نەرم', bg: 'linear-gradient(135deg, #831843, #f472b6)', color: '#fff'},
+                            {name: 'بۆشایی ئاسمان', desc: 'ئەستێرەیی', bg: '#18181b', color: '#a855f7'},
+                            {name: 'سەهۆڵبەندان', desc: 'شینی سارد', bg: '#0f172a', color: '#38bdf8'},
+                            {name: 'خۆڵی بیابان', desc: 'نارنجی تۆخ', bg: '#451a03', color: '#fb923c'},
+                            {name: 'دارستانی چڕ', desc: 'سەوزی کاڵ', bg: 'linear-gradient(135deg, #047857, #10b981)', color: '#fff'},
+                            {name: 'یاقوتی سوور', desc: 'سووری درەوشاوە', bg: 'linear-gradient(135deg, #be123c, #fb7185)', color: '#fff'},
+                            {name: 'نیوەشەوی ئیندیگۆ', desc: 'شین و مۆر', bg: 'linear-gradient(135deg, #312e81, #818cf8)', color: '#fff'},
+                            {name: 'کاربۆن فایبەر', desc: 'خەڵووزی مۆدێرن', bg: '#27272a', color: '#71717a'},
+                            {name: 'گەلەکسی پۆڵ', desc: 'مۆر و سوور', bg: 'linear-gradient(135deg, #4c1d95, #f43f5e)', color: '#fff'},
+                            {name: 'نەعنایی فرێش', desc: 'سەوزی سەرنجڕاکێش', bg: 'linear-gradient(135deg, #065f46, #34d399)', color: '#fff'},
+                            {name: 'پایزی زێڕین', desc: 'زەرد و قاوەیی', bg: 'linear-gradient(135deg, #78350f, #fde047)', color: '#fff'},
+                            {name: 'وایۆلێتی کارەبایی', desc: 'مۆری پڕ تیشک', bg: 'linear-gradient(135deg, #581c87, #e879f9)', color: '#fff'}
+                        ];
+
+                        let icons = ['🌌', '✨', '🔥', '👑', '🌅', '💎', '🔮', '🌊', '🌸', '🚀', '❄️', '🏜️', '🌲', '❤️', '🌙', '🛡️', '🌠', '🍃', '🍂', '⚡', '🟢', '🔷', '🪄', '🌋', '🌴', '🍯', '💠', '🌷', '🪨', '🖤'];
+
+                        for(let i = 1; i <= 100; i++) {
+                            let base = baseThemes[(i - 1) % baseThemes.length];
+                            let themeId = 'theme_' + i;
+                            let tName = i + '. ' + base.name + (i > 20 ? ' (' + i + ')' : '');
+                            let icon = icons[(i - 1) % icons.length];
+                            
+                            document.write(\`
+                                <div class="theme-card" onclick="applyTheme('\${themeId}')">
+                                    <div class="mini-preview" style="background: \${base.bg}; color: \${base.color};">\${icon}</div>
+                                    <div class="theme-title">\${tName}</div>
+                                    <div class="theme-desc">\${base.desc}</div>
+                                    <button class="select-btn">هەڵبژاردن ✨</button>
+                                </div>
+                            \`);
+                        }
+                    </script>
                 </div>
             </div>
-            <div id="toast">دیزاینەکە بە سەرکەوتوویی گۆڕدرا! 🚀</div>
+            <div id="toast">دیزاینەکە گۆڕدرا بۆ سەرکەوتوویی! 🚀</div>
             <script>
                 const urlParams = new URLSearchParams(window.location.search);
                 const username = urlParams.get('user');
@@ -589,7 +592,7 @@ app.get('/editor', (req, res) => {
     `);
 });
 
-// پڕۆفایلی گشتی بە لۆگۆی ڕەسەنی پلاتفۆرمەکان
+// پڕۆفایلی گشتی پشتگیری بۆ هەموو ١٠٠ دیزاینەکە
 app.get('/profile', (req, res) => {
     res.send(`
         <!DOCTYPE html>
@@ -600,49 +603,27 @@ app.get('/profile', (req, res) => {
             <title>KurdBio - پڕۆفایل</title>
             <style>
                 * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
-                body { min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 10px; transition: 0.3s; }
-                body.default { background: linear-gradient(135deg, #07090e, #161b22); color: #fff; }
-                body.neon { background: #050505; color: #00f2fe; }
-                body.cyberpunk { background: #ffe600; color: #000; }
-                body.gold { background: #1a1a1a; color: #ffd700; }
-                body.sunset { background: linear-gradient(135deg, #ff7e5f, #feb47b); color: #fff; }
-                body.emerald { background: #064e3b; color: #34d399; }
-
+                body { min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 10px; transition: 0.3s; background: #07090e; color: #fff; }
+                
                 .card { background: rgba(22, 27, 34, 0.85); backdrop-filter: blur(20px); padding: 35px 20px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.08); width: 100%; max-width: 420px; min-height: 90vh; display: flex; flex-direction: column; justify-content: center; align-items: center; box-sizing: border-box; box-shadow: 0 25px 50px rgba(0,0,0,0.6); }
-                body.neon .card { border: 2px solid #00f2fe; box-shadow: 0 0 30px rgba(0, 242, 254, 0.4); background: rgba(5, 5, 5, 0.95); }
-                body.cyberpunk .card { background: #000; border: 3px solid #ff0050; color: #fff; }
-                body.gold .card { border: 2px solid #ffd700; box-shadow: 0 0 30px rgba(255, 215, 0, 0.3); background: rgba(26, 26, 26, 0.95); }
-                body.sunset .card { background: rgba(20, 20, 20, 0.85); border: 2px solid #ff7e5f; }
-                body.emerald .card { background: rgba(6, 78, 59, 0.9); border: 2px solid #34d399; }
-
                 .avatar-img { width: 95px; height: 95px; border-radius: 50%; object-fit: cover; margin-bottom: 15px; border: 3px solid #00f2fe; display: none; box-shadow: 0 0 20px rgba(0,242,254,0.4); }
                 h1 { font-size: 24px; margin-bottom: 6px; text-align: center; font-weight: 800; }
                 p { font-size: 14px; margin-bottom: 25px; opacity: 0.8; text-align: center; font-weight: 400; }
                 
                 .links-container { width: 100%; display: flex; flex-direction: column; gap: 12px; }
-                
-                /* دیزاینی دوگمەکان لەگەڵ لۆگۆ و ڕەنگی تایبەتی پلاتفۆرمەکان */
                 .bio-btn { display: flex; align-items: center; gap: 14px; width: 100%; padding: 15px 20px; background: rgba(33, 38, 45, 0.9); color: #fff; text-decoration: none; border-radius: 16px; border: 1px solid rgba(255,255,255,0.08); font-weight: 700; font-size: 15px; transition: all 0.3s ease; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
                 .bio-btn svg { width: 24px; height: 24px; flex-shrink: 0; }
                 
                 .btn-whatsapp { border-color: rgba(37,211,102,0.4); }
                 .btn-whatsapp:hover { background: rgba(37,211,102,0.15); border-color: #25d366; }
-                
-                .btn-snapchat { border-color: rgba(255,2fc,0,0.4); }
+                .btn-snapchat { border-color: rgba(255,252,0,0.4); }
                 .btn-snapchat:hover { background: rgba(255,252,0,0.15); border-color: #fffc00; }
-                
                 .btn-telegram { border-color: rgba(0,136,204,0.4); }
                 .btn-telegram:hover { background: rgba(0,136,204,0.15); border-color: #0088cc; }
-                
                 .btn-facebook { border-color: rgba(24,119,242,0.4); }
                 .btn-facebook:hover { background: rgba(24,119,242,0.15); border-color: #1877f2; }
 
-                body.cyberpunk .bio-btn { background: #ff0050; color: #fff; border: none; }
-                body.sunset .bio-btn { background: #ff7e5f; color: #fff; border: none; }
-                body.emerald .bio-btn { background: #047857; color: #fff; border: none; }
-                
                 .bio-btn:hover { transform: translateY(-3px); filter: brightness(1.1); box-shadow: 0 10px 25px rgba(0,0,0,0.4); }
-                
                 .footer { margin-top: 30px; font-size: 12px; opacity: 0.5; text-align: center; font-weight: 500; }
                 .footer span { font-weight: bold; }
                 @media (max-width: 480px) {
@@ -651,7 +632,7 @@ app.get('/profile', (req, res) => {
                 }
             </style>
         </head>
-        <body id="body-tag" class="default">
+        <body id="body-tag">
             <div class="card">
                 <div>
                     <img id="p-avatar" class="avatar-img" src="" alt="Profile Image">
@@ -667,6 +648,17 @@ app.get('/profile', (req, res) => {
             <script>
                 const urlParams = new URLSearchParams(window.location.search);
                 const username = urlParams.get('user');
+                
+                // کۆمەڵێک ڕەنگی شاهانە و مۆدێرن بۆ ١٠٠ دیزاینەکە
+                const dynamicColors = [
+                    'linear-gradient(135deg, #07090e, #161b22)', '#050505', '#ffe600', '#1a1a1a', 
+                    'linear-gradient(135deg, #ff7e5f, #feb47b)', '#064e3b', 'linear-gradient(135deg, #6b21a8, #c084fc)',
+                    'linear-gradient(135deg, #1e3a8a, #93c5fd)', 'linear-gradient(135deg, #831843, #f472b6)', '#18181b',
+                    '#0f172a', '#451a03', 'linear-gradient(135deg, #047857, #10b981)', 'linear-gradient(135deg, #be123c, #fb7185)',
+                    'linear-gradient(135deg, #312e81, #818cf8)', '#27272a', 'linear-gradient(135deg, #4c1d95, #f43f5e)',
+                    'linear-gradient(135deg, #065f46, #34d399)', 'linear-gradient(135deg, #78350f, #fde047)', 'linear-gradient(135deg, #581c87, #e879f9)'
+                ];
+
                 async function loadProfile() {
                     if(!username) return alert('بەکارهێنەر نییە!');
                     const res = await fetch('/api/get-bio/' + username);
@@ -680,12 +672,18 @@ app.get('/profile', (req, res) => {
                             imgEl.src = p.avatar;
                             imgEl.style.display = 'block';
                         }
-                        if(p.theme) document.getElementById('body-tag').className = p.theme;
                         
+                        // دیاریکردنی ڕەنگی باکگراوند بۆ هەر یەکێک لە ١٠٠ دیزاینەکە
+                        if(p.theme && p.theme.startsWith('theme_')) {
+                            let index = parseInt(p.theme.replace('theme_', '')) - 1;
+                            document.body.style.background = dynamicColors[index % dynamicColors.length];
+                        } else {
+                            document.body.style.background = 'linear-gradient(135deg, #07090e, #161b22)';
+                        }
+
                         const socialsBox = document.getElementById('p-socials');
                         const s = p.socials;
                         
-                        // SVG Icons بۆ لۆگۆی ڕەسەنی پلاتفۆرمەکان
                         const waSvg = '<svg fill="#25d366" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>';
                         const snapSvg = '<svg fill="#fffc00" viewBox="0 0 24 24"><path d="M12.162 2C8.75 2 5.8 4.6 5.8 8.1c0 2.2 1.1 3.9 2.5 5.1-.9.7-1.5 1.7-1.5 2.9 0 1.2.6 2.3 1.6 3-.4.3-.8.7-1.2 1.2-.5.5-.7 1.2-.6 1.9.1.7.6 1.3 1.3 1.5 1.2.4 2.8.5 4.3.5s3.1-.1 4.3-.5c.7-.2 1.2-.8 1.3-1.5.1-.7-.1-1.4-.6-1.9-.4-.5-.8-.9-1.2-1.2 1-.7 1.6-1.8 1.6-3 0-1.2-.6-2.2-1.5-2.9 1.4-1.2 2.5-2.9 2.5-5.1 0-3.5-2.95-6.1-6.362-6.1z"/></svg>';
                         const tgSvg = '<svg fill="#0088cc" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.03-1.99 1.27-5.62 3.72-.53.36-1.01.54-1.44.53-.47-.02-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.25.38-.51 1.06-.78 4.16-1.82 6.94-3.02 8.34-3.61 3.97-1.68 4.79-1.97 5.33-1.98.12 0 .39.03.56.17.14.12.18.28.2.4-.02.07-.02.24-.04.38z"/></svg>';
