@@ -18,13 +18,15 @@ app.get('/', (req, res) => {
             <title>KurdBio - چوونەژوورەوە</title>
             <style>
                 * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
-                body { background: #0d1117; color: #fff; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
-                .card { background: #161b22; border: 1px solid #30363d; border-radius: 20px; padding: 30px; width: 100%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: center; }
-                h2 { color: #00f2fe; margin-bottom: 20px; font-size: 22px; }
-                label { font-size: 13px; color: #8b949e; display: block; text-align: right; margin-top: 12px; margin-bottom: 5px; }
-                input { width: 100%; padding: 12px; background: #0d1117; border: 1px solid #30363d; color: #fff; border-radius: 10px; outline: none; }
-                .btn { width: 100%; padding: 14px; background: linear-gradient(90deg, #ff0050, #00f2fe); color: #fff; border: none; border-radius: 10px; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 20px; }
-                .toggle-link { margin-top: 15px; font-size: 13px; color: #8b949e; cursor: pointer; }
+                body { background: #07090e; color: #fff; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+                .card { background: rgba(22, 27, 34, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; padding: 40px 30px; width: 100%; max-width: 420px; box-shadow: 0 25px 50px rgba(0,0,0,0.6); text-align: center; }
+                h2 { color: #fff; margin-bottom: 25px; font-size: 24px; font-weight: 800; background: linear-gradient(90deg, #ff0050, #00f2fe); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+                label { font-size: 13px; color: #8b949e; display: block; text-align: right; margin-top: 15px; margin-bottom: 8px; font-weight: 500; }
+                input { width: 100%; padding: 14px; background: rgba(13, 17, 23, 0.8); border: 1px solid #30363d; color: #fff; border-radius: 12px; outline: none; transition: 0.3s; }
+                input:focus { border-color: #00f2fe; box-shadow: 0 0 10px rgba(0,242,254,0.2); }
+                .btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #ff0050, #00f2fe); color: #fff; border: none; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 25px; transition: 0.3s; box-shadow: 0 10px 20px rgba(255,0,80,0.3); }
+                .btn:hover { opacity: 0.9; transform: translateY(-2px); }
+                .toggle-link { margin-top: 20px; font-size: 13px; color: #8b949e; cursor: pointer; }
                 .toggle-link span { color: #00f2fe; font-weight: bold; }
             </style>
         </head>
@@ -52,12 +54,10 @@ app.get('/', (req, res) => {
                     const username = document.getElementById('username').value.trim();
                     const password = document.getElementById('password').value;
                     if(!username || !password) return alert('تکایە هەردوو خانەکە پڕبکەرەوە!');
-                    
                     if(username === 'admin' && password === 'admin123') {
                         window.location.href = '/admin';
                         return;
                     }
-
                     const endpoint = isRegisterMode ? '/api/register' : '/api/login';
                     const res = await fetch(endpoint, {
                         method: 'POST',
@@ -77,7 +77,7 @@ app.get('/', (req, res) => {
     `);
 });
 
-// پەنەلی ئەدمن
+// ئەدمن پەنەل
 app.get('/admin', (req, res) => {
     res.send(`
         <!DOCTYPE html>
@@ -87,43 +87,35 @@ app.get('/admin', (req, res) => {
             <title>KurdBio - بەڕێوەبەری ئەدمن</title>
             <style>
                 * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
-                body { background: #0d1117; color: #fff; padding: 20px; display: flex; justify-content: center; }
+                body { background: #07090e; color: #fff; padding: 20px; display: flex; justify-content: center; }
                 .container { width: 100%; max-width: 900px; }
-                h1 { color: #00f2fe; margin-bottom: 20px; font-size: 24px; text-align: center; }
-                .card { background: #161b22; border: 1px solid #30363d; border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-                table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-                th, td { border: 1px solid #30363d; padding: 12px; text-align: center; font-size: 14px; }
-                th { background: #21262d; color: #00f2fe; }
-                .ban-btn { background: #da3633; border: none; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; }
+                h1 { color: #00f2fe; margin-bottom: 20px; font-size: 24px; text-align: center; font-weight: 800; }
+                .card { background: rgba(22, 27, 34, 0.7); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 25px; margin-bottom: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+                table { width: 100%; border-collapse: collapse; margin-top: 15px; border-radius: 12px; overflow: hidden; }
+                th, td { border: 1px solid #30363d; padding: 14px; text-align: center; font-size: 14px; }
+                th { background: #161b22; color: #00f2fe; font-weight: 600; }
+                .ban-btn { background: #da3633; border: none; color: white; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: bold; transition: 0.2s; }
                 .ban-btn:hover { background: #b31d1d; }
-                .unban-btn { background: #2ea043; border: none; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; }
+                .unban-btn { background: #2ea043; border: none; color: white; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: bold; transition: 0.2s; }
                 .unban-btn:hover { background: #238636; }
-                .back-home { display: inline-block; margin-bottom: 20px; color: #8b949e; text-decoration: none; font-size: 14px; }
+                .back-home { display: inline-block; margin-bottom: 20px; color: #8b949e; text-decoration: none; font-size: 14px; font-weight: 500; }
                 .back-home:hover { color: #fff; }
             </style>
         </head>
         <body>
             <div class="container">
                 <a href="/" class="back-home">← چوونەدەرەوە لە ئەدمن</a>
-                <h1>👑 پەنەلی کۆنترۆڵی ئەدمن (Admin Dashboard)</h1>
+                <h1>👑 پەنەلی کۆنترۆڵی ئەدمن</h1>
                 <div class="card">
                     <h2 style="font-size: 18px; color: #2ea043; margin-bottom: 10px;">📋 لیستی هەموو بەکارهێنەرە چالاکەکان</h2>
                     <table id="users-table">
-                        <tr>
-                            <th>ناوی بەکارهێنەر</th>
-                            <th>وشەی تێپەڕ</th>
-                            <th>باڵانس ($)</th>
-                            <th>کردار</th>
-                        </tr>
+                        <tr><th>ناوی بەکارهێنەر</th><th>وشەی تێپەڕ</th><th>باڵانس ($)</th><th>کردار</th></tr>
                     </table>
                 </div>
                 <div class="card">
                     <h2 style="font-size: 18px; color: #da3633; margin-bottom: 10px;">🚫 لیستی بەکارهێنەرە بانکراوەکان</h2>
                     <table id="banned-table">
-                        <tr>
-                            <th>ناوی بەکارهێنەر</th>
-                            <th>کردار</th>
-                        </tr>
+                        <tr><th>ناوی بەکارهێنەر</th><th>کردار</th></tr>
                     </table>
                 </div>
             </div>
@@ -147,19 +139,11 @@ app.get('/admin', (req, res) => {
                 loadAdminData();
                 async function banUser(username) {
                     if(!confirm('دڵنیایت لە بانکردنی ئەم بەکارهێنەرە؟')) return;
-                    const res = await fetch('/api/admin/ban', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ username })
-                    });
+                    await fetch('/api/admin/ban', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username }) });
                     loadAdminData();
                 }
                 async function unbanUser(username) {
-                    const res = await fetch('/api/admin/unban', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ username })
-                    });
+                    await fetch('/api/admin/unban', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username }) });
                     loadAdminData();
                 }
             </script>
@@ -179,9 +163,7 @@ app.post('/api/admin/ban', (req, res) => {
         delete users[username];
         delete userProfiles[username];
         res.json({ success: true });
-    } else {
-        res.json({ success: false });
-    }
+    } else { res.json({ success: false }); }
 });
 
 app.post('/api/admin/unban', (req, res) => {
@@ -191,9 +173,7 @@ app.post('/api/admin/unban', (req, res) => {
         userProfiles[username] = { name: username, bio: '', avatar: '', theme: 'default', socials: {}, links: [] };
         delete bannedUsers[username];
         res.json({ success: true });
-    } else {
-        res.json({ success: false });
-    }
+    } else { res.json({ success: false }); }
 });
 
 app.post('/api/login', (req, res) => {
@@ -212,30 +192,34 @@ app.post('/api/register', (req, res) => {
     res.json({ success: true });
 });
 
+// داشبۆردی سەرەکی مۆدێرن
 app.get('/dashboard', (req, res) => {
     res.send(`
         <!DOCTYPE html>
         <html lang="ckb" dir="rtl">
         <head>
             <meta charset="UTF-8">
-            <title>KurdBio - داشبۆردی سەرەکی</title>
+            <title>KurdBio - داشبۆرد</title>
             <style>
                 * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
-                body { background: #0d1117; color: #fff; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+                body { background: #07090e; color: #fff; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
                 .container { width: 100%; max-width: 450px; text-align: center; }
-                .card { background: #161b22; border: 1px solid #30363d; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-                h2 { color: #00f2fe; margin-bottom: 20px; font-size: 22px; }
-                .link-box { background: #0d1117; border: 1px dashed #00f2fe; padding: 12px; border-radius: 12px; margin-bottom: 20px; text-align: right; }
-                .link-box label { font-size: 11px; color: #8b949e; display: block; margin-bottom: 4px; }
+                .card { background: rgba(22, 27, 34, 0.75); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); border-radius: 24px; padding: 35px 25px; box-shadow: 0 25px 50px rgba(0,0,0,0.6); }
+                h2 { color: #fff; margin-bottom: 25px; font-size: 22px; font-weight: 800; }
+                .link-box { background: rgba(13, 17, 23, 0.9); border: 1px dashed #00f2fe; padding: 15px; border-radius: 16px; margin-bottom: 25px; text-align: right; }
+                .link-box label { font-size: 12px; color: #00f2fe; display: block; margin-bottom: 6px; font-weight: 600; }
                 .link-input-group { display: flex; gap: 8px; }
-                .link-input-group input { width: 100%; padding: 8px; background: #161b22; border: 1px solid #30363d; color: #00f2fe; border-radius: 8px; font-size: 12px; outline: none; direction: ltr; text-align: left; }
-                .copy-btn { background: #00f2fe; color: #000; border: none; padding: 8px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 12px; }
-                .menu-btn { display: block; width: 100%; padding: 14px; margin: 10px 0; background: #21262d; color: #fff; text-decoration: none; border-radius: 14px; border: 1px solid #30363d; font-weight: bold; font-size: 15px; transition: 0.2s; text-align: center; }
-                .menu-btn:hover { border-color: #00f2fe; background: #30363d; transform: translateY(-2px); }
+                .link-input-group input { width: 100%; padding: 10px; background: #161b22; border: 1px solid #30363d; color: #00f2fe; border-radius: 10px; font-size: 12px; outline: none; direction: ltr; text-align: left; }
+                .copy-btn { background: #00f2fe; color: #000; border: none; padding: 0 14px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 13px; transition: 0.2s; }
+                .copy-btn:hover { background: #38bdf8; }
+                .menu-btn { display: block; width: 100%; padding: 14px; margin: 12px 0; background: rgba(33, 38, 45, 0.8); color: #fff; text-decoration: none; border-radius: 14px; border: 1px solid rgba(255,255,255,0.08); font-weight: 600; font-size: 15px; transition: all 0.3s ease; text-align: center; }
+                .menu-btn:hover { border-color: #00f2fe; background: rgba(48, 54, 61, 0.9); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,242,254,0.1); }
                 .btn-themes { border-color: #ff007f; color: #ff007f; }
+                .btn-themes:hover { border-color: #ff007f; box-shadow: 0 5px 15px rgba(255,0,127,0.2); }
                 .btn-settings { border-color: #1f6feb; color: #58a6ff; }
-                .btn-logout { border-color: #da3633; color: #f85149; margin-top: 15px; }
-                .preview-btn { margin-top: 10px; background: linear-gradient(90deg, #ff0050, #00f2fe); border: none; color: white; cursor: pointer; }
+                .btn-logout { border-color: rgba(218,54,51,0.4); color: #f85149; margin-top: 20px; }
+                .btn-logout:hover { background: rgba(218,54,51,0.15); border-color: #da3633; }
+                .preview-btn { margin-top: 15px; background: linear-gradient(135deg, #ff0050, #00f2fe); border: none; color: white; cursor: pointer; font-weight: 700; box-shadow: 0 10px 20px rgba(255,0,80,0.3); }
             </style>
         </head>
         <body>
@@ -282,7 +266,7 @@ app.get('/dashboard', (req, res) => {
     `);
 });
 
-// بەشی نوێ: هەڵبژاردنی دیزاینە نایابەکان (Themes Gallery) بۆ بەکارهێنەر
+// بەشی دیزاینە نایابەکان (Themes Gallery) بە شێوازی مۆدێرن و نموونەی سەرنجڕاکێش
 app.get('/themes', (req, res) => {
     res.send(`
         <!DOCTYPE html>
@@ -292,59 +276,88 @@ app.get('/themes', (req, res) => {
             <title>KurdBio - دیزاینە نایابەکان</title>
             <style>
                 * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
-                body { background: #0d1117; color: #fff; display: flex; justify-content: center; min-height: 100vh; padding: 20px; }
-                .container { width: 100%; max-width: 600px; padding-bottom: 40px; }
-                h2 { color: #ff007f; margin-bottom: 15px; font-size: 22px; text-align: center; }
-                .themes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
-                .theme-card { background: #161b22; border: 2px solid #30363d; border-radius: 16px; padding: 20px; text-align: center; cursor: pointer; transition: 0.2s; }
-                .theme-card:hover { transform: translateY(-4px); border-color: #ff007f; }
-                .theme-card.active { border-color: #00f2fe; box-shadow: 0 0 15px rgba(0, 242, 254, 0.4); }
-                .theme-title { font-weight: bold; font-size: 16px; margin-bottom: 8px; color: #fff; }
-                .theme-desc { font-size: 12px; color: #8b949e; margin-bottom: 15px; }
-                .select-btn { background: linear-gradient(90deg, #ff0050, #00f2fe); border: none; color: #fff; padding: 8px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 13px; width: 100%; }
-                .back-link { display: inline-block; margin-bottom: 15px; color: #8b949e; text-decoration: none; font-size: 14px; }
+                body { background: #07090e; color: #fff; display: flex; justify-content: center; min-height: 100vh; padding: 25px; }
+                .container { width: 100%; max-width: 700px; padding-bottom: 40px; }
+                h2 { color: #fff; margin-bottom: 8px; font-size: 26px; font-weight: 800; text-align: center; background: linear-gradient(90deg, #ff007f, #00f2fe); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+                .subtitle { text-align: center; color: #8b949e; font-size: 14px; margin-bottom: 30px; font-weight: 400; }
+                
+                .themes-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 20px; }
+                
+                /* کاردی دیزاینەکان بە ڕوکاری مۆدێرن */
+                .theme-card { background: rgba(22, 27, 34, 0.7); backdrop-filter: blur(15px); border: 2px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 22px; text-align: center; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden; }
+                .theme-card:hover { transform: translateY(-6px); border-color: #00f2fe; box-shadow: 0 15px 30px rgba(0,242,254,0.15); }
+                
+                /* مینی پڕۆفایلی نموونەیی ناو کارتەکە بۆ نیشاندانی ڕوکار */
+                .mini-preview { width: 55px; height: 55px; border-radius: 50%; margin: 0 auto 12px auto; display: flex; align-items: center; justify-content: center; font-size: 20px; border: 2px solid rgba(255,255,255,0.2); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+                .preview-default { background: linear-gradient(135deg, #0d1117, #161b22); }
+                .preview-neon { background: #050505; border-color: #00f2fe; color: #00f2fe; box-shadow: 0 0 15px rgba(0,242,254,0.3); }
+                .preview-cyberpunk { background: #ffe600; color: #000; border-color: #ff0050; }
+                .preview-gold { background: #1a1a1a; border-color: #ffd700; color: #ffd700; }
+                .preview-sunset { background: linear-gradient(135deg, #ff7e5f, #feb47b); color: #fff; }
+                .preview-emerald { background: #064e3b; border-color: #34d399; color: #34d399; }
+
+                .theme-title { font-weight: 700; font-size: 15px; margin-bottom: 6px; color: #fff; }
+                .theme-desc { font-size: 12px; color: #8b949e; margin-bottom: 18px; line-height: 1.4; }
+                
+                .select-btn { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 10px 16px; border-radius: 12px; font-weight: 600; cursor: pointer; font-size: 13px; width: 100%; transition: 0.3s; }
+                .theme-card:hover .select-btn { background: linear-gradient(135deg, #ff0050, #00f2fe); border-color: transparent; box-shadow: 0 5px 15px rgba(255,0,80,0.3); }
+
+                .back-link { display: inline-block; margin-bottom: 20px; color: #8b949e; text-decoration: none; font-size: 14px; font-weight: 500; transition: 0.2s; }
                 .back-link:hover { color: #fff; }
+
+                /* نامەی خێرا (Toast Notification) بە بێ پۆپئەپی ناشرین */
+                #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px); background: linear-gradient(135deg, #ff0050, #00f2fe); color: #fff; padding: 12px 25px; border-radius: 50px; font-weight: 700; font-size: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 1000; }
+                #toast.show { transform: translateX(-50%) translateY(0); }
             </style>
         </head>
         <body>
             <div class="container">
                 <a href="#" onclick="goBack()" class="back-link">← گەڕانەوە بۆ داشبۆرد</a>
-                <h2>🎨 دیزاینە نایابەکان بۆ پڕۆفایلەکەت</h2>
-                <p style="text-align: center; color: #8b949e; font-size: 13px; margin-bottom: 20px;">دیزاینێکی دڵخواز هەڵبژێرە تا ڕاستەوخۆ لەسەر پڕۆفایلەکەت دەردەکەوێت:</p>
+                <h2>🎨 دیزاینە نایابەکان</h2>
+                <div class="subtitle">دیزاینی دڵخوازی خۆت هەڵبژێرە؛ ڕاستەوخۆ دەبێت بە ڕووکاری پڕۆفایلەکەت!</div>
                 
                 <div class="themes-grid">
-                    <div class="theme-card" id="theme-default" onclick="applyTheme('default')">
-                        <div class="theme-title">🌌 شۆخی تاریک (Dark Modern)</div>
-                        <div class="theme-desc">دیزاینێکی قەشەنگ بە ڕەنگی خۆڕسکی تاریك</div>
+                    <div class="theme-card" onclick="applyTheme('default')">
+                        <div class="mini-preview preview-default">🌌</div>
+                        <div class="theme-title">شۆخی تاریک</div>
+                        <div class="theme-desc">تاریکی مۆدێرنی قەشەنگ</div>
                         <button class="select-btn">هەڵبژاردن ✨</button>
                     </div>
-                    <div class="theme-card" id="theme-neon" onclick="applyTheme('neon')">
-                        <div class="theme-title">✨ نێۆنی تیشکدەر (Neon Glow)</div>
-                        <div class="theme-desc">ڕەنگی شینی درەوشاوەی سەرنجڕاکێش</div>
+                    <div class="theme-card" onclick="applyTheme('neon')">
+                        <div class="mini-preview preview-neon">✨</div>
+                        <div class="theme-title">نێۆنی تیشکدەر</div>
+                        <div class="theme-desc">شینی درەوشاوەی نایاب</div>
                         <button class="select-btn">هەڵبژاردن ✨</button>
                     </div>
-                    <div class="theme-card" id="theme-cyberpunk" onclick="applyTheme('cyberpunk')">
-                        <div class="theme-title">🔥 سایبەرپانک (Cyberpunk)</div>
-                        <div class="theme-desc">زەرد و ڕەشی سەرنجڕاکێشی جیاواز</div>
+                    <div class="theme-card" onclick="applyTheme('cyberpunk')">
+                        <div class="mini-preview preview-cyberpunk">🔥</div>
+                        <div class="theme-title">سایبەرپانک</div>
+                        <div class="theme-desc">زەرد و ڕەشی سەرنجڕاکێش</div>
                         <button class="select-btn">هەڵبژاردن ✨</button>
                     </div>
-                    <div class="theme-card" id="theme-gold" onclick="applyTheme('gold')">
-                        <div class="theme-title">👑 زێڕینی شاهانە (Royal Gold)</div>
-                        <div class="theme-desc">دیزاینێکی شاهانەی زێڕین</div>
+                    <div class="theme-card" onclick="applyTheme('gold')">
+                        <div class="mini-preview preview-gold">👑</div>
+                        <div class="theme-title">زێڕینی شاهانە</div>
+                        <div class="theme-desc">شاهانەی زێڕینی درەوشاوە</div>
                         <button class="select-btn">هەڵبژاردن ✨</button>
                     </div>
-                    <div class="theme-card" id="theme-sunset" onclick="applyTheme('sunset')">
-                        <div class="theme-title">🌅 خۆراوا بوون (Sunset Glow)</div>
-                        <div class="theme-desc">تێکەڵەی نارنجی و پەمەیی سەرنجڕاکێش</div>
+                    <div class="theme-card" onclick="applyTheme('sunset')">
+                        <div class="mini-preview preview-sunset">🌅</div>
+                        <div class="theme-title">خۆراوا بوون</div>
+                        <div class="theme-desc">نارنجی و پەمەیی سەرنجڕاکێش</div>
                         <button class="select-btn">هەڵبژاردن ✨</button>
                     </div>
-                    <div class="theme-card" id="theme-emerald" onclick="applyTheme('emerald')">
-                        <div class="theme-title">💎 زمردی سەوز (Emerald)</div>
-                        <div class="theme-desc">ڕەنگی سەوزی کاڵی بەهێز</div>
+                    <div class="theme-card" onclick="applyTheme('emerald')">
+                        <div class="mini-preview preview-emerald">💎</div>
+                        <div class="theme-title">زمردی سەوز</div>
+                        <div class="theme-desc">سەوزی جوانی سروشتی</div>
                         <button class="select-btn">هەڵبژاردن ✨</button>
                     </div>
                 </div>
             </div>
+
+            <div id="toast">دیزاینەکە بە سەرکەوتوویی گۆڕدرا! 🚀</div>
+
             <script>
                 const urlParams = new URLSearchParams(window.location.search);
                 const username = urlParams.get('user');
@@ -359,10 +372,11 @@ app.get('/themes', (req, res) => {
                     });
                     const data = await res.json();
                     if(data.success) {
-                        alert('دیزاینەکە بە سەرکەوتوویی بۆ پڕۆفایلەکەت گۆڕدرا! 🚀');
-                        window.location.href = '/dashboard?user=' + username;
-                    } else {
-                        alert('هەڵەیەک ڕوویدا!');
+                        const toast = document.getElementById('toast');
+                        toast.classList.add('show');
+                        setTimeout(() => {
+                            window.location.href = '/dashboard?user=' + username;
+                        }, 1200);
                     }
                 }
             </script>
@@ -381,15 +395,15 @@ app.get('/settings', (req, res) => {
             <title>KurdBio - ڕێکخستنی هەژمار</title>
             <style>
                 * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
-                body { background: #0d1117; color: #fff; display: flex; justify-content: center; min-height: 100vh; padding: 20px; }
-                .container { width: 100%; max-width: 450px; }
-                .card { background: #161b22; border: 1px solid #1f6feb; border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-                h2 { color: #58a6ff; margin-bottom: 15px; font-size: 20px; text-align: center; }
-                label { font-size: 13px; color: #8b949e; display: block; margin-top: 12px; margin-bottom: 5px; }
-                input { width: 100%; padding: 12px; background: #0d1117; border: 1px solid #30363d; color: #fff; border-radius: 10px; outline: none; }
-                .btn { width: 100%; padding: 14px; background: #1f6feb; color: #fff; border: none; border-radius: 10px; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 20px; }
-                .btn:hover { background: #388bfd; }
-                .back-link { display: inline-block; margin-bottom: 15px; color: #8b949e; text-decoration: none; font-size: 14px; }
+                body { background: #07090e; color: #fff; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+                .container { width: 100%; max-width: 420px; }
+                .card { background: rgba(22, 27, 34, 0.75); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); border-radius: 24px; padding: 30px; box-shadow: 0 25px 50px rgba(0,0,0,0.6); }
+                h2 { color: #58a6ff; margin-bottom: 20px; font-size: 20px; text-align: center; font-weight: 800; }
+                label { font-size: 13px; color: #8b949e; display: block; margin-top: 15px; margin-bottom: 6px; font-weight: 500; }
+                input { width: 100%; padding: 12px; background: rgba(13, 17, 23, 0.8); border: 1px solid #30363d; color: #fff; border-radius: 12px; outline: none; }
+                .btn { width: 100%; padding: 14px; background: #1f6feb; color: #fff; border: none; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 25px; transition: 0.3s; }
+                .btn:hover { background: #388bfd; transform: translateY(-2px); }
+                .back-link { display: inline-block; margin-bottom: 15px; color: #8b949e; text-decoration: none; font-size: 14px; font-weight: 500; }
                 .back-link:hover { color: #fff; }
             </style>
         </head>
@@ -401,8 +415,8 @@ app.get('/settings', (req, res) => {
                     <label>ناوی بەکارهێنەری نوێ</label>
                     <input type="text" id="new-username">
                     <label>وشەی تێپەڕی نوێ</label>
-                    <input type="password" id="new-password" placeholder="پاسۆردی نوێ">
-                    <button class="btn" onclick="updateAccount()">نوێکردنەوەی زانیارییەکان 💾</button>
+                    <input type="password" id="new-password" placeholder="••••••••">
+                    <button class="btn" onclick="updateAccount()">نوێکردنەوە 💾</button>
                 </div>
             </div>
             <script>
@@ -423,7 +437,6 @@ app.get('/settings', (req, res) => {
                     });
                     const data = await res.json();
                     if(data.success) {
-                        alert('زانیارییەکان سەرکەوتووانە گۆڕدران!');
                         window.location.href = '/dashboard?user=' + newUsername;
                     } else {
                         alert(data.message);
@@ -446,12 +459,10 @@ app.post('/api/update-account', (req, res) => {
             delete userProfiles[oldUsername];
         }
         res.json({ success: true });
-    } else {
-        res.json({ success: false, message: 'هەڵە!' });
-    }
+    } else { res.json({ success: false, message: 'هەڵە!' }); }
 });
 
-// بەشی ڕێکخستنی ناوەڕۆکی پڕۆفایل و وێنە
+// ڕێکخستنی پڕۆفایل و وێنە
 app.get('/editor', (req, res) => {
     res.send(`
         <!DOCTYPE html>
@@ -461,19 +472,21 @@ app.get('/editor', (req, res) => {
             <title>KurdBio - بەڕێوەبردنی پڕۆفایل</title>
             <style>
                 * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
-                body { background: #0d1117; color: #fff; display: flex; justify-content: center; min-height: 100vh; padding: 20px; }
+                body { background: #07090e; color: #fff; display: flex; justify-content: center; min-height: 100vh; padding: 20px; }
                 .container { width: 100%; max-width: 500px; padding-bottom: 40px; }
-                .card { background: #161b22; border: 1px solid #30363d; border-radius: 20px; padding: 25px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-                h2 { color: #00f2fe; margin-bottom: 15px; font-size: 18px; }
-                label { font-size: 13px; color: #8b949e; display: block; margin-top: 10px; margin-bottom: 5px; }
-                input { width: 100%; padding: 12px; background: #0d1117; border: 1px solid #30363d; color: #fff; border-radius: 10px; outline: none; }
-                .btn { width: 100%; padding: 14px; background: linear-gradient(90deg, #ff0050, #00f2fe); color: #fff; border: none; border-radius: 10px; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 15px; }
-                .btn-add { background: #2ea043; margin-top: 15px; }
-                .link-item { background: #0d1117; border: 1px solid #30363d; padding: 10px; border-radius: 10px; margin-top: 8px; display: flex; justify-content: space-between; align-items: center; }
-                .delete-btn { background: #da3633; border: none; color: white; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; }
-                .back-link { display: inline-block; margin-bottom: 15px; color: #8b949e; text-decoration: none; font-size: 14px; }
+                .card { background: rgba(22, 27, 34, 0.75); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); border-radius: 24px; padding: 25px; margin-bottom: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+                h2 { color: #00f2fe; margin-bottom: 15px; font-size: 18px; font-weight: 700; }
+                label { font-size: 13px; color: #8b949e; display: block; margin-top: 12px; margin-bottom: 6px; font-weight: 500; }
+                input { width: 100%; padding: 12px; background: rgba(13, 17, 23, 0.8); border: 1px solid #30363d; color: #fff; border-radius: 12px; outline: none; }
+                input[type="file"] { padding: 8px; cursor: pointer; }
+                .btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #ff0050, #00f2fe); color: #fff; border: none; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 20px; transition: 0.3s; box-shadow: 0 10px 20px rgba(255,0,80,0.3); }
+                .btn:hover { opacity: 0.9; transform: translateY(-2px); }
+                .btn-add { background: #2ea043; box-shadow: 0 5px 15px rgba(46,160,67,0.3); }
+                .link-item { background: #0d1117; border: 1px solid #30363d; padding: 12px; border-radius: 12px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center; }
+                .delete-btn { background: #da3633; border: none; color: white; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; }
+                .back-link { display: inline-block; margin-bottom: 15px; color: #8b949e; text-decoration: none; font-size: 14px; font-weight: 500; }
                 .back-link:hover { color: #fff; }
-                .preview-avatar { width: 70px; height: 70px; border-radius: 50%; object-fit: cover; margin-top: 10px; border: 2px solid #00f2fe; display: none; }
+                .preview-avatar { width: 75px; height: 75px; border-radius: 50%; object-fit: cover; margin-top: 12px; border: 2px solid #00f2fe; display: none; box-shadow: 0 0 15px rgba(0,242,254,0.3); }
             </style>
         </head>
         <body>
@@ -585,7 +598,6 @@ app.get('/editor', (req, res) => {
                     });
                     const data = await res.json();
                     if(data.success) {
-                        alert('گۆڕانکارییەکان خەزنکران!');
                         window.location.href = '/dashboard?user=' + username;
                     }
                 }
@@ -595,7 +607,7 @@ app.get('/editor', (req, res) => {
     `);
 });
 
-// پەڕەی پڕۆفایلی گشتی بە هەموو دیزاینە نایابەکانەوە
+// پڕۆفایلی گشتی
 app.get('/profile', (req, res) => {
     res.send(`
         <!DOCTYPE html>
@@ -607,36 +619,34 @@ app.get('/profile', (req, res) => {
             <style>
                 * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
                 body { min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 10px; transition: 0.3s; }
-                
-                /* دیزاینە جیاوازەکان */
-                body.default { background: linear-gradient(135deg, #0d1117, #161b22); color: #fff; }
+                body.default { background: linear-gradient(135deg, #07090e, #161b22); color: #fff; }
                 body.neon { background: #050505; color: #00f2fe; }
                 body.cyberpunk { background: #ffe600; color: #000; }
                 body.gold { background: #1a1a1a; color: #ffd700; }
                 body.sunset { background: linear-gradient(135deg, #ff7e5f, #feb47b); color: #fff; }
                 body.emerald { background: #064e3b; color: #34d399; }
 
-                .card { background: rgba(22, 27, 34, 0.9); backdrop-filter: blur(10px); padding: 30px 15px; border-radius: 20px; border: 1px solid #30363d; width: 100%; max-width: 420px; min-height: 90vh; display: flex; flex-direction: column; justify-content: center; align-items: center; box-sizing: border-box; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
-                body.neon .card { border: 2px solid #00f2fe; box-shadow: 0 0 25px rgba(0, 242, 254, 0.5); background: rgba(5, 5, 5, 0.95); }
+                .card { background: rgba(22, 27, 34, 0.85); backdrop-filter: blur(20px); padding: 35px 20px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.08); width: 100%; max-width: 420px; min-height: 90vh; display: flex; flex-direction: column; justify-content: center; align-items: center; box-sizing: border-box; box-shadow: 0 25px 50px rgba(0,0,0,0.6); }
+                body.neon .card { border: 2px solid #00f2fe; box-shadow: 0 0 30px rgba(0, 242, 254, 0.4); background: rgba(5, 5, 5, 0.95); }
                 body.cyberpunk .card { background: #000; border: 3px solid #ff0050; color: #fff; }
-                body.gold .card { border: 2px solid #ffd700; box-shadow: 0 0 25px rgba(255, 215, 0, 0.3); background: rgba(26, 26, 26, 0.95); }
+                body.gold .card { border: 2px solid #ffd700; box-shadow: 0 0 30px rgba(255, 215, 0, 0.3); background: rgba(26, 26, 26, 0.95); }
                 body.sunset .card { background: rgba(20, 20, 20, 0.85); border: 2px solid #ff7e5f; }
                 body.emerald .card { background: rgba(6, 78, 59, 0.9); border: 2px solid #34d399; }
 
-                .avatar-img { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; margin-bottom: 15px; border: 3px solid #00f2fe; display: none; }
-                h1 { font-size: 22px; margin-bottom: 6px; text-align: center; }
-                p { font-size: 14px; margin-bottom: 25px; opacity: 0.8; text-align: center; }
+                .avatar-img { width: 95px; height: 95px; border-radius: 50%; object-fit: cover; margin-bottom: 15px; border: 3px solid #00f2fe; display: none; box-shadow: 0 0 20px rgba(0,242,254,0.4); }
+                h1 { font-size: 24px; margin-bottom: 6px; text-align: center; font-weight: 800; }
+                p { font-size: 14px; margin-bottom: 25px; opacity: 0.8; text-align: center; font-weight: 400; }
                 .links-container { width: 100%; display: flex; flex-direction: column; gap: 12px; }
-                .bio-btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 14px; background: #21262d; color: #fff; text-decoration: none; border-radius: 14px; border: 1px solid #30363d; font-weight: bold; font-size: 15px; transition: 0.2s; }
+                .bio-btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 15px; background: rgba(33, 38, 45, 0.9); color: #fff; text-decoration: none; border-radius: 16px; border: 1px solid rgba(255,255,255,0.08); font-weight: 700; font-size: 15px; transition: all 0.3s ease; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
                 body.cyberpunk .bio-btn { background: #ff0050; color: #fff; border: none; }
                 body.sunset .bio-btn { background: #ff7e5f; color: #fff; border: none; }
                 body.emerald .bio-btn { background: #047857; color: #fff; border: none; }
-                .bio-btn:hover { transform: translateY(-2px); opacity: 0.9; }
-                .footer { margin-top: 30px; font-size: 12px; opacity: 0.5; text-align: center; }
+                .bio-btn:hover { transform: translateY(-3px); filter: brightness(1.1); box-shadow: 0 10px 25px rgba(0,0,0,0.4); }
+                .footer { margin-top: 30px; font-size: 12px; opacity: 0.5; text-align: center; font-weight: 500; }
                 .footer span { font-weight: bold; }
                 @media (max-width: 480px) {
                     body { padding: 0; }
-                    .card { width: 100%; min-height: 100vh; border-radius: 0; border: none; padding: 20px 15px; justify-content: space-around; }
+                    .card { width: 100%; min-height: 100vh; border-radius: 0; border: none; padding: 25px 15px; justify-content: space-around; }
                 }
             </style>
         </head>
