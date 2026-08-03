@@ -14,8 +14,6 @@
         .links-container { display: flex; flex-direction: column; gap: 12px; }
         .bio-btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 14px 20px; background: #21262d; color: #fff; text-decoration: none; border-radius: 14px; border: 1px solid #30363d; font-weight: bold; font-size: 15px; transition: all 0.2s ease-in-out; }
         .bio-btn:hover { border-color: #ff0050; transform: translateY(-3px); background: #282e37; box-shadow: 0 5px 15px rgba(255, 0, 80, 0.2); }
-        .dashboard-btn { background: #1f6feb; border-color: #388bfd; margin-top: 15px; display: none; }
-        .dashboard-btn:hover { border-color: #58a6ff; background: #388bfd; box-shadow: 0 5px 15px rgba(31, 111, 235, 0.4); }
         .footer { margin-top: 30px; font-size: 12px; color: #484f58; }
         .footer span { color: #00f2fe; font-weight: bold; }
     </style>
@@ -28,9 +26,6 @@
         <p id="user-bio" class="bio"></p>
         
         <div id="user-links" class="links-container"></div>
-
-        <!-- دوگمەی گەڕانەوە بۆ داشبۆرد کە سەرەتای شاراوەیە -->
-        <a href="dashboard.html" id="back-to-dashboard" class="bio-btn dashboard-btn">⚙️ گەڕانەوە بۆ داشبۆرد</a>
 
         <div class="footer">دروستکراوە بە <span>KurdBio</span> 🚀</div>
     </div>
@@ -59,13 +54,6 @@
                     p.links.forEach(item => {
                         linksBox.innerHTML += `<a href="${item.url}" target="_blank" class="bio-btn">🔗 ${item.title}</a>`;
                     });
-
-                    // پشکنین بۆ ئەوەی بزانین ئایا ئەو کەسەی سەردانی ماڵپەڕەکە کردووە خۆیەتی یان نا
-                    const loggedInUser = localStorage.getItem('username'); // یان ئەو متغییرەی لە سیستەمەکەتدا ناوی بەکارهێنەری تێدا پاشەکەوت دەکرێت
-                    if (loggedInUser && loggedInUser === username) {
-                        document.getElementById('back-to-dashboard').style.display = 'flex';
-                    }
-
                 } else {
                     alert('پڕۆفایل نەدۆزرایەوە!');
                 }
