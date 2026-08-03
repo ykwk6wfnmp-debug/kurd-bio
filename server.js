@@ -451,7 +451,7 @@ app.get('/balance', (req, res) => {
     `);
 });
 
-// ٦. لاپەڕەی پڕۆفایلی گشتی
+// ٦. لاپەڕەی پڕۆفایلی گشتی (بێ دوگمەی گەڕانەوە بۆ داشبۆرد)
 app.get('/profile', (req, res) => {
     res.send(`
         <!DOCTYPE html>
@@ -484,7 +484,6 @@ app.get('/profile', (req, res) => {
                 .bio-btn:hover { transform: translateY(-2px); opacity: 0.9; }
                 .footer { margin-top: 30px; font-size: 12px; opacity: 0.5; }
                 .footer span { font-weight: bold; }
-                .back-dash { display: block; margin-top: 15px; font-size: 13px; color: #00f2fe; text-decoration: none; }
             </style>
         </head>
         <body id="body-tag">
@@ -494,15 +493,12 @@ app.get('/profile', (req, res) => {
                 <p id="p-bio"></p>
                 <div id="p-socials" class="links-container" style="margin-bottom: 12px;"></div>
                 <div id="p-links" class="links-container"></div>
-                <a href="#" id="dash-link" class="back-dash">گەڕانەوە بۆ داشبۆرد ⚙️</a>
                 <div class="footer">دروستکراوە بە <span>KurdBio</span> 🚀</div>
             </div>
             <script>
                 const urlParams = new URLSearchParams(window.location.search);
                 const username = urlParams.get('user');
-                if(username) {
-                    document.getElementById('dash-link').href = '/dashboard?user=' + username;
-                }
+                
                 async function loadProfile() {
                     if(!username) return alert('بەکارهێنەر نییە!');
                     const res = await fetch('/api/get-bio/' + username);
