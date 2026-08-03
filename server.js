@@ -7,6 +7,7 @@ app.use(cors());
 
 let users = {}; 
 let userProfiles = {}; 
+let bannedUsers = {}; // لیستی ئەو کەسانەی بان کراون
 
 app.get('/', (req, res) => {
     res.send(`
@@ -76,7 +77,7 @@ app.get('/', (req, res) => {
     `);
 });
 
-// پەنەلی ئەدمن
+// پەنەلی ئەدمن (بەشی بان و لادانی بان)
 app.get('/admin', (req, res) => {
     res.send(`
         <!DOCTYPE html>
@@ -87,14 +88,16 @@ app.get('/admin', (req, res) => {
             <style>
                 * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
                 body { background: #0d1117; color: #fff; padding: 20px; display: flex; justify-content: center; }
-                .container { width: 100%; max-width: 800px; }
+                .container { width: 100%; max-width: 900px; }
                 h1 { color: #00f2fe; margin-bottom: 20px; font-size: 24px; text-align: center; }
-                .card { background: #161b22; border: 1px solid #30363d; border-radius: 15px; padding: 20px; margin-bottom: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+                .card { background: #161b22; border: 1px solid #30363d; border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
                 table { width: 100%; border-collapse: collapse; margin-top: 10px; }
                 th, td { border: 1px solid #30363d; padding: 12px; text-align: center; font-size: 14px; }
                 th { background: #21262d; color: #00f2fe; }
-                .delete-btn { background: #da3633; border: none; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; }
-                .delete-btn:hover { background: #b31d1d; }
+                .ban-btn { background: #da3633; border: none; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; }
+                .ban-btn:hover { background: #b31d1d; }
+                .unban-btn { background: #2ea043; border: none; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; }
+                .unban-btn:hover { background: #238636; }
                 .back-home { display: inline-block; margin-bottom: 20px; color: #8b949e; text-decoration: none; font-size: 14px; }
                 .back-home:hover { color: #fff; }
             </style>
@@ -103,56 +106,74 @@ app.get('/admin', (req, res) => {
             <div class="container">
                 <a href="/" class="back-home">← چوونەدەرەوە لە ئەدمن</a>
                 <h1>👑 پەنەلی کۆنترۆڵی ئەدمن (Admin Dashboard)</h1>
+                
                 <div class="card">
-                    <h2 style="font-size: 18px; color: #2ea043; margin-bottom: 10px;">📋 لیستی هەموو بەکارهێنەرە تۆمارکراوەکان</h2>
+                    <h2 style="font-size: 18px; color: #2ea043; margin-bottom: 10px;">📋 لیستی هەموو بەکارهێنەرە چالاکەکان</h2>
                     <table id="users-table">
                         <tr>
-                            <th>ناوی بەکارهێنەر (Username)</th>
-                            <th>وشەی تێپەڕ (Password)</th>
+                            <th>ناوی بەکارهێنەر</th>
+                            <th>وشەی تێپەڕ</th>
                             <th>باڵانس ($)</th>
-                            <th>کردار (Action)</th>
+                            <th>کردار</th>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="card">
+                    <h2 style="font-size: 18px; color: #da3633; margin-bottom: 10px;">🚫 لیستی بەکارهێنەرە بانکراوەکان (Banned Users)</h2>
+                    <table id="banned-table">
+                        <tr>
+                            <th>ناوی بەکارهێنەر</th>
+                            <th>کردار</th>
                         </tr>
                     </table>
                 </div>
             </div>
             <script>
                 async function loadAdminData() {
-                    const res = await fetch('/api/admin/users');
+                    const res = await fetch('/api/admin/data');
                     const data = await res.json();
                     if(data.success) {
+                        // بەشی یوزەرە چالاکەکان
                         const table = document.getElementById('users-table');
-                        table.innerHTML = \`
-                            <tr>
-                                <th>ناوی بەکارهێنەر (Username)</th>
-                                <th>وشەی تێپەڕ (Password)</th>
-                                <th>باڵانس ($)</th>
-                                <th>کردار (Action)</th>
-                            </tr>
-                        \`;
+                        table.innerHTML = '<tr><th>ناوی بەکارهێنەر</th><th>وشەی تێپەڕ</th><th>باڵانس ($)</th><th>کردار</th></tr>';
                         for(let user in data.users) {
-                            table.innerHTML += \`
-                                <tr>
-                                    <td>\${user}</td>
-                                    <td>\${data.users[user].password}</td>
-                                    <td>\${data.users[user].balance} $</td>
-                                    <td><button class="delete-btn" onclick="deleteUser('\${user}')">سڕینەوە / بانکردن</button></td>
-                                </tr>
-                            \`;
+                            table.innerHTML += '<tr><td>' + user + '</td><td>' + data.users[user].password + '</td><td>' + data.users[user].balance + ' $</td><td><button class="ban-btn" onclick="banUser(\\'' + user + '\\')">بانکردن (Ban)</button></td></tr>';
+                        }
+
+                        // بەشی یوزەرە بانکراوەکان
+                        const bannedTable = document.getElementById('banned-table');
+                        bannedTable.innerHTML = '<tr><th>ناوی بەکارهێنەر</th><th>کردار</th></tr>';
+                        for(let bUser in data.banned) {
+                            bannedTable.innerHTML += '<tr><td>' + bUser + '</td><td><button class="unban-btn" onclick="unbanUser(\\'' + bUser + '\\')">لادانی بان (Unban)</button></td></tr>';
                         }
                     }
                 }
                 loadAdminData();
 
-                async function deleteUser(username) {
-                    if(!confirm('دڵنیایت لە سڕینەوەی ئەم بەکارهێنەرە؟')) return;
-                    const res = await fetch('/api/admin/delete-user', {
+                async function banUser(username) {
+                    if(!confirm('دڵنیایت لە بانکردنی ئەم بەکارهێنەرە؟')) return;
+                    const res = await fetch('/api/admin/ban', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ username })
                     });
                     const data = await res.json();
                     if(data.success) {
-                        alert('بەکارهێنەرەکە سڕایەوە!');
+                        alert('بەکارهێنەرەکە بانکرا!');
+                        loadAdminData();
+                    }
+                }
+
+                async function unbanUser(username) {
+                    const res = await fetch('/api/admin/unban', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username })
+                    });
+                    const data = await res.json();
+                    if(data.success) {
+                        alert('بان بۆ ئەم بەکارهێنەرە لادرا!');
                         loadAdminData();
                     }
                 }
@@ -162,22 +183,54 @@ app.get('/admin', (req, res) => {
     `);
 });
 
-app.get('/api/admin/users', (req, res) => {
-    res.json({ success: true, users });
+app.get('/api/admin/data', (req, res) => {
+    res.json({ success: true, users, banned: bannedUsers });
 });
 
-app.post('/api/admin/delete-user', (req, res) => {
+app.post('/api/admin/ban', (req, res) => {
     const { username } = req.body;
     if(users[username]) {
+        bannedUsers[username] = users[username];
         delete users[username];
         delete userProfiles[username];
         res.json({ success: true });
     } else {
-        res.json({ success: false, message: 'بەکارهێنەر نەدۆزرایەوە' });
+        res.json({ success: false });
     }
 });
 
-// داشبۆردی سەرەکی لەگەڵ دوگمەی ڕێکخستن و چوونەدرەوە (Log Out)
+app.post('/api/admin/unban', (req, res) => {
+    const { username } = req.body;
+    if(bannedUsers[username]) {
+        users[username] = bannedUsers[username];
+        userProfiles[username] = { name: username, bio: '', avatar: '', theme: 'default', socials: {}, links: [] };
+        delete bannedUsers[username];
+        res.json({ success: true });
+    } else {
+        res.json({ success: false });
+    }
+});
+
+app.post('/api/login', (req, res) => {
+    const { username, password } = req.body;
+    if(bannedUsers[username]) {
+        return res.json({ success: false, message: 'هەژمارەکەت بانکراوە لەلایەن بەڕێوەبەرەوە!' });
+    }
+    if(!users[username]) return res.json({ success: false, message: 'ئەم یوزەرنەمە بوونی نییە!' });
+    if(users[username].password !== password) return res.json({ success: false, message: 'وشەی تێپەڕ هەڵەیە!' });
+    res.json({ success: true });
+});
+
+app.post('/api/register', (req, res) => {
+    const { username, password } = req.body;
+    if(bannedUsers[username] || users[username]) {
+        return res.json({ success: false, message: 'ئەم یوزەرنەمەیە بەردەست نییە یاخود بانکراوە!' });
+    }
+    users[username] = { password, balance: 0 };
+    userProfiles[username] = { name: username, bio: '', avatar: '', theme: 'default', socials: {}, links: [] };
+    res.json({ success: true });
+});
+
 app.get('/dashboard', (req, res) => {
     res.send(`
         <!DOCTYPE html>
@@ -257,7 +310,6 @@ app.get('/dashboard', (req, res) => {
     `);
 });
 
-// لاپەڕەی ڕێکخستنی هەژمار (Settings) بۆ گۆڕینی یوزەر و پاسۆرد
 app.get('/settings', (req, res) => {
     res.send(`
         <!DOCTYPE html>
@@ -296,7 +348,6 @@ app.get('/settings', (req, res) => {
                 const username = urlParams.get('user');
                 if(!username) window.location.href = '/';
                 function goBack() { window.location.href = '/dashboard?user=' + username; }
-
                 async function loadUserData() {
                     const res = await fetch('/api/get-bio/' + username);
                     const data = await res.json();
@@ -305,12 +356,10 @@ app.get('/settings', (req, res) => {
                     }
                 }
                 loadUserData();
-
                 async function updateAccount() {
                     const newUsername = document.getElementById('new-username').value.trim();
                     const newPassword = document.getElementById('new-password').value;
                     if(!newUsername || !newPassword) return alert('تکایە خانەکان پڕبکەرەوە!');
-
                     const res = await fetch('/api/update-account', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -330,11 +379,10 @@ app.get('/settings', (req, res) => {
     `);
 });
 
-// API بۆ نوێکردنەوەی یوزەر و پاسۆرد
 app.post('/api/update-account', (req, res) => {
     const { oldUsername, newUsername, newPassword } = req.body;
     if(oldUsername !== newUsername && users[newUsername]) {
-        return res.json({ success: false, message: 'ئەم یوزەرنەمەیە پێشتر هەیە، تکایە یوزەرێکی تر هەڵبژێرە!' });
+        return res.json({ success: false, message: 'ئەم یوزەرنەمەیە پێشتر هەیە!' });
     }
     if(users[oldUsername]) {
         users[newUsername] = { password: newPassword, balance: users[oldUsername].balance };
@@ -349,7 +397,6 @@ app.post('/api/update-account', (req, res) => {
     }
 });
 
-// لاپەڕەی دروستکردنی لینک بایۆ و وێنە
 app.get('/editor', (req, res) => {
     res.send(`
         <!DOCTYPE html>
@@ -744,21 +791,6 @@ app.get('/profile', (req, res) => {
         </body>
         </html>
     `);
-});
-
-app.post('/api/register', (req, res) => {
-    const { username, password } = req.body;
-    if(users[username]) return res.json({ success: false, message: 'ئەم یوزەرنەمە پێشتر تۆمار کراوە!' });
-    users[username] = { password, balance: 0 };
-    userProfiles[username] = { name: username, bio: '', avatar: '', theme: 'default', socials: {}, links: [] };
-    res.json({ success: true });
-});
-
-app.post('/api/login', (req, res) => {
-    const { username, password } = req.body;
-    if(!users[username]) return res.json({ success: false, message: 'ئەم یوزەرنەمە بوونی نییە!' });
-    if(users[username].password !== password) return res.json({ success: false, message: 'وشەی تێپەڕ هەڵەیە!' });
-    res.json({ success: true });
 });
 
 app.post('/api/add-balance', (req, res) => {
