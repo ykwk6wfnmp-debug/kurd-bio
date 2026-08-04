@@ -15,7 +15,7 @@ const {
     LIMITS
 } = require('../lib/validation');
 const { publicProfile } = require('../store/record');
-const { THEMES, getTheme, isValidTheme } = require('../themes');
+const { FAMILIES, TOTAL, getTheme, isValidTheme, isValidFamily, queryThemes } = require('../themes');
 const { publicProfileUrl } = require('../lib/urls');
 
 const BCRYPT_ROUNDS = 10;
@@ -34,15 +34,30 @@ function profileRoutes(store) {
             if (!record || record.banned) {
                 return res.status(404).json({ success: false, message: 'پڕۆفایل نەدۆزرایەوە!' });
             }
-            const theme = getTheme(record.profile.theme);
+            // Design tokens only — the visitor gets no name, price or tier.
+            const t = getTheme(record.profile.theme);
             res.json({
                 success: true,
                 profile: publicProfile(record, {
-                    id: theme.id,
-                    background: theme.background,
-                    text: theme.text,
-                    accent: theme.accent,
-                    surface: theme.surface
+                    id: t.id,
+                    family: t.family,
+                    bg: t.bg,
+                    bgImage: t.bgImage,
+                    surface: t.surface,
+                    surfaceBorder: t.surfaceBorder,
+                    text: t.text,
+                    muted: t.muted,
+                    accent: t.accent,
+                    accent2: t.accent2,
+                    radius: t.radius,
+                    shadow: t.shadow,
+                    btnStyle: t.btnStyle,
+                    glow: t.glow,
+                    blur: t.blur,
+                    animated: t.animated,
+                    borderWidth: t.borderWidth,
+                    letterSpacing: t.letterSpacing,
+                    fontWeight: t.fontWeight
                 })
             });
         } catch (err) {
@@ -50,11 +65,40 @@ function profileRoutes(store) {
         }
     });
 
-    // Catalog + (when signed in) what this user owns and can afford.
+    /**
+     * Catalog + (when signed in) what this user owns and can afford.
+     *
+     * Paged, because the catalog is 1000 themes (~350KB serialized in full) and
+     * no phone should download that to browse a grid.
+     *   ?family=neon&page=2&pageSize=48   browse one family
+     *   ?ids=theme_7,theme_842            resolve specific themes by id
+     */
     router.get('/themes', (req, res) => {
+        const family = req.query.family ? String(req.query.family) : '';
+        if (family && !isValidFamily(family)) {
+            return res.status(400).json({ success: false, message: 'ئەم جۆرە دیزاینە بوونی نییە!' });
+        }
+
+        const result = queryThemes({
+            family,
+            page: req.query.page,
+            pageSize: req.query.pageSize,
+            ids: req.query.ids
+        });
+
+        // The catalog is immutable at runtime, but the owned/balance fields are
+        // per-user, so this must never land in a shared cache.
+        res.set('Cache-Control', 'private, max-age=300');
         res.json({
             success: true,
-            themes: THEMES,
+            themes: result.themes,
+            page: result.page,
+            pageSize: result.pageSize,
+            total: result.total,
+            totalPages: result.totalPages,
+            catalogTotal: TOTAL,
+            families: FAMILIES,
+            family: family || null,
             current: req.user ? getTheme(req.user.profile.theme).id : null,
             owned: req.user ? req.user.ownedThemes : [],
             balance: req.user ? req.user.balance : 0

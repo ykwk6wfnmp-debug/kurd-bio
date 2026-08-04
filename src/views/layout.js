@@ -11,13 +11,25 @@ function dataIsland(data) {
     return `<script type="application/json" id="kb-data">${json}</script>`;
 }
 
+// Preloaded so Kurdish text does not reflow once the webfont arrives.
+const FONT_PRELOAD = ['400', '700']
+    .map(
+        (weight) =>
+            `<link rel="preload" as="font" type="font/woff2" crossorigin ` +
+            `href="/fonts/noto-kufi-arabic-arabic-${weight}-normal.woff2">`
+    )
+    .join('\n    ');
+
 function layout({ title, data, script, body, head = '', bodyClass = '' }) {
     return `<!DOCTYPE html>
 <html lang="ckb" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#06080d">
+    <meta name="color-scheme" content="dark light">
     <title>${title}</title>
+    ${FONT_PRELOAD}
     <link rel="stylesheet" href="/css/app.css">
     ${head}
 </head>

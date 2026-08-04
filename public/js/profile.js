@@ -62,17 +62,41 @@
         return anchor;
     }
 
+    /* The theme is a token set, applied as CSS custom properties so the
+       stylesheet owns the layout and the theme owns only the look. */
     function applyTheme(theme) {
         if (!theme) return;
-        document.body.style.background = theme.background;
-        document.body.style.color = theme.text;
-        var card = document.querySelector('.profile-card');
-        if (card) {
-            card.style.background = theme.surface;
-            card.style.borderColor = 'rgba(255,255,255,0.12)';
+        var root = document.body;
+        var vars = {
+            '--t-bg': theme.bg,
+            '--t-bg-image': theme.bgImage || 'none',
+            '--t-surface': theme.surface,
+            '--t-border': theme.surfaceBorder,
+            '--t-border-width': (theme.borderWidth || 1) + 'px',
+            '--t-text': theme.text,
+            '--t-muted': theme.muted,
+            '--t-accent': theme.accent,
+            '--t-accent2': theme.accent2,
+            '--t-radius': (theme.radius || 20) + 'px',
+            '--t-shadow': theme.shadow || 'none',
+            '--t-glow': theme.glow || 'none',
+            '--t-blur': (theme.blur || 0) + 'px',
+            '--t-weight': theme.fontWeight || 700,
+            '--t-spacing': theme.letterSpacing || 'normal'
+        };
+        Object.keys(vars).forEach(function (key) {
+            root.style.setProperty(key, String(vars[key]));
+        });
+
+        // Button geometry (outline / glass / sharp / hard) is a CSS concern.
+        root.setAttribute('data-btn', theme.btnStyle || 'solid');
+        if (theme.animated) {
+            root.classList.add('animated');
+            root.style.backgroundSize = '160% 160%';
         }
-        var avatar = document.getElementById('p-avatar');
-        if (avatar) avatar.style.borderColor = theme.accent;
+
+        var meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.setAttribute('content', theme.bg);
     }
 
     function render(profile) {
@@ -104,6 +128,12 @@
             var node = linkButton(item.url, '🔗 ' + item.title, '', null);
             if (node) linksBox.appendChild(node);
         });
+
+        // Buttons fade in one after another rather than all at once.
+        var buttons = document.querySelectorAll('.bio-btn');
+        for (var i = 0; i < buttons.length; i += 1) {
+            buttons[i].style.animationDelay = 80 + i * 55 + 'ms';
+        }
     }
 
     (async function load() {

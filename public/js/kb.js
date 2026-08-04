@@ -84,5 +84,33 @@
         return node;
     }
 
-    window.KB = { toast: toast, api: api, copyText: copyText, el: el, pageData: pageData };
+    /* ١٢٣ instead of 123 — the UI is Kurdish Sorani throughout. */
+    function num(value) {
+        return String(value).replace(/\d/g, function (d) { return '٠١٢٣٤٥٦٧٨٩'[Number(d)]; });
+    }
+
+    /* Placeholder cards shown while a page of data is in flight. */
+    function skeletons(container, count) {
+        var frag = document.createDocumentFragment();
+        for (var i = 0; i < count; i += 1) {
+            frag.appendChild(el('div', { class: 'skeleton', 'aria-hidden': 'true' }));
+        }
+        container.appendChild(frag);
+    }
+
+    function clearSkeletons(container) {
+        var nodes = container.querySelectorAll('.skeleton');
+        for (var i = 0; i < nodes.length; i += 1) nodes[i].remove();
+    }
+
+    window.KB = {
+        toast: toast,
+        api: api,
+        copyText: copyText,
+        el: el,
+        pageData: pageData,
+        num: num,
+        skeletons: skeletons,
+        clearSkeletons: clearSkeletons
+    };
 })();

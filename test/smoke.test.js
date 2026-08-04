@@ -176,6 +176,116 @@ test('VIP themes charge exactly once', async () => {
     assert.strictEqual(second.json.balance, 5);
 });
 
+test('the catalog is 1000 themes across 10 families with 50 free', () => {
+    const { THEMES, FAMILIES } = require('../src/themes');
+    assert.strictEqual(THEMES.length, 1000);
+    assert.strictEqual(FAMILIES.length, 10);
+
+    const free = THEMES.filter((t) => t.price === 0);
+    const vip = THEMES.filter((t) => t.price === 5);
+    const legendary = THEMES.filter((t) => t.price === 10);
+    assert.strictEqual(free.length, 50);
+    assert.strictEqual(vip.length, 850);
+    assert.strictEqual(legendary.length, 100);
+    assert.strictEqual(free.length + vip.length + legendary.length, 1000);
+
+    // Tier and price must never disagree.
+    assert.ok(THEMES.every((t) => (t.tier === 'free') === (t.price === 0)));
+    assert.ok(THEMES.every((t) => t.vip === t.price > 0));
+
+    // Every family must be reachable for free, and every theme must carry a
+    // full token set or the profile page renders a half-styled card.
+    for (const family of FAMILIES) {
+        const inFamily = THEMES.filter((t) => t.family === family.key);
+        assert.strictEqual(inFamily.length, 100, family.key);
+        assert.strictEqual(inFamily.filter((t) => t.price === 0).length, 5, family.key);
+    }
+    for (const key of ['bg', 'surface', 'surfaceBorder', 'text', 'muted', 'accent', 'accent2', 'radius', 'btnStyle']) {
+        assert.ok(THEMES.every((t) => t[key] !== undefined && t[key] !== ''), `missing ${key}`);
+    }
+});
+
+test('theme_1 is still free and still the default', async () => {
+    const { getTheme } = require('../src/themes');
+    const { DEFAULT_THEME } = require('../src/store/record');
+    assert.strictEqual(getTheme(DEFAULT_THEME).price, 0);
+    assert.strictEqual(DEFAULT_THEME, 'theme_1');
+});
+
+test('GET /api/themes paginates instead of dumping 1000 themes', async () => {
+    const req = client();
+    const first = await req('GET', '/api/themes');
+    assert.strictEqual(first.status, 200);
+    assert.strictEqual(first.json.themes.length, 48);
+    assert.strictEqual(first.json.total, 1000);
+    assert.strictEqual(first.json.catalogTotal, 1000);
+    assert.strictEqual(first.json.families.length, 10);
+
+    // A page must stay small enough for a phone.
+    assert.ok(first.text.length < 60 * 1024, `page was ${first.text.length} bytes`);
+
+    const page2 = await req('GET', '/api/themes?page=2&pageSize=10');
+    assert.strictEqual(page2.json.themes.length, 10);
+    assert.strictEqual(page2.json.themes[0].id, 'theme_11');
+
+    // Out-of-range and oversized inputs clamp rather than error.
+    assert.strictEqual((await req('GET', '/api/themes?page=99999')).json.page, 21);
+    assert.strictEqual((await req('GET', '/api/themes?page=0')).json.page, 1);
+    assert.ok((await req('GET', '/api/themes?pageSize=5000')).json.pageSize <= 60);
+});
+
+test('GET /api/themes filters by family and rejects unknown ones', async () => {
+    const req = client();
+    const neon = await req('GET', '/api/themes?family=neon&pageSize=60');
+    assert.strictEqual(neon.json.total, 100);
+    assert.ok(neon.json.themes.every((t) => t.family === 'neon'));
+
+    assert.strictEqual((await req('GET', '/api/themes?family=nope')).status, 400);
+});
+
+test('GET /api/themes?ids= resolves specific themes and is capped', async () => {
+    const req = client();
+    const res = await req('GET', '/api/themes?ids=theme_7,theme_999,not_a_theme');
+    assert.deepStrictEqual(res.json.themes.map((t) => t.id), ['theme_7', 'theme_999']);
+
+    const many = Array.from({ length: 200 }, (_, i) => `theme_${i + 1}`).join(',');
+    assert.ok((await req('GET', `/api/themes?ids=${many}`)).json.themes.length <= 60);
+});
+
+test('a legendary theme costs 10 and is charged once', async () => {
+    const req = client();
+    await req('POST', '/api/register', { username: 'collector', password: 'secret123' });
+
+    const user = await store.getUser('collector');
+    user.balance = 25;
+    await store.saveUser(user);
+
+    const buy = await req('POST', '/api/save-theme', { theme: 'theme_91' }); // slot 91 = legendary
+    assert.strictEqual(buy.json.charged, 10);
+    assert.strictEqual(buy.json.balance, 15);
+
+    await req('POST', '/api/save-theme', { theme: 'theme_1' });
+    const again = await req('POST', '/api/save-theme', { theme: 'theme_91' });
+    assert.strictEqual(again.json.charged, 0);
+    assert.strictEqual(again.json.balance, 15);
+});
+
+test('the public profile carries theme design tokens, not private fields', async () => {
+    const req = client();
+    await req('POST', '/api/register', { username: 'styled', password: 'secret123' });
+    await req('POST', '/api/save-theme', { theme: 'theme_3' });
+
+    const anon = client();
+    const res = await anon('GET', '/api/public-profile/styled');
+    const theme = res.json.profile.theme;
+    assert.strictEqual(theme.id, 'theme_3');
+    assert.ok(theme.bg && theme.surface && theme.accent && theme.btnStyle);
+    // Catalog metadata must not leak into a public response.
+    assert.strictEqual(theme.price, undefined);
+    assert.strictEqual(theme.tier, undefined);
+    assert.strictEqual(theme.name, undefined);
+});
+
 test('a VIP theme cannot be taken without balance', async () => {
     const req = client();
     await req('POST', '/api/register', { username: 'broke_user', password: 'secret123' });
