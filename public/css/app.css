@@ -506,6 +506,39 @@ input[readonly] { color: var(--cyan); direction: ltr; text-align: left; font-siz
 .data-table td { border-top: 1px solid var(--border); }
 .role-tag { color: var(--amber); font-weight: 700; }
 
+/* Stat tiles — 2 across at 320px, up to 6 on desktop. */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
+    gap: 0.6rem;
+}
+.stat {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    padding: 0.8rem 0.6rem;
+    text-align: center;
+}
+.stat-value { font-size: var(--step-2); font-weight: 800; line-height: 1.2; }
+.stat-label { font-size: var(--step--1); color: var(--muted); margin-top: 0.15rem; }
+.stat.good .stat-value { color: #56d364; }
+.stat.bad .stat-value { color: #f85149; }
+.stat.accent .stat-value { color: var(--cyan); }
+
+/* Inline balance adjustment: number input + button, wraps at narrow widths. */
+.balance-control { display: flex; gap: 0.35rem; flex: 1 1 auto; min-width: 0; }
+.amount-input {
+    flex: 0 1 4.5rem;
+    width: 4.5rem;
+    min-height: 38px;
+    padding: 0 0.5rem;
+    text-align: center;
+    direction: ltr;
+    font-size: max(16px, var(--step--1));
+}
+/* Emails are Latin inside an RTL page — isolate so they render correctly. */
+.email-cell { direction: ltr; unicode-bidi: isolate; overflow-wrap: anywhere; font-size: var(--step--1); }
+
 .ban-btn, .unban-btn, .credit-btn {
     min-height: 38px;
     padding: 0 0.8rem;

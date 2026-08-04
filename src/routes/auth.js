@@ -5,7 +5,7 @@ const bcrypt = require('bcryptjs');
 
 const { rateLimit } = require('../lib/rate-limit');
 const { startSession, endSession, requireAuth } = require('../lib/session');
-const { checkUsername, checkPassword } = require('../lib/validation');
+const { checkUsername, checkPassword, checkEmail } = require('../lib/validation');
 const { createRecord } = require('../store/record');
 const { publicProfileUrl } = require('../lib/urls');
 const { getTheme } = require('../themes');
@@ -28,6 +28,7 @@ function authRoutes(store) {
         try {
             const username = checkUsername(req.body.username);
             const password = checkPassword(req.body.password);
+            const email = checkEmail(req.body.email); // optional, admin-visible only
 
             if (await store.getUser(username)) {
                 return res.status(409).json({ success: false, message: 'ئەم یوزەرنەمەیە بەردەست نییە!' });
@@ -35,6 +36,7 @@ function authRoutes(store) {
 
             const record = createRecord({
                 username,
+                email,
                 passwordHash: await bcrypt.hash(password, BCRYPT_ROUNDS)
             });
             await store.saveUser(record);
@@ -79,6 +81,7 @@ function authRoutes(store) {
             user: {
                 username: user.username,
                 role: user.role,
+                email: user.email,
                 balance: user.balance,
                 ownedThemes: user.ownedThemes,
                 theme: getTheme(user.profile.theme).id,

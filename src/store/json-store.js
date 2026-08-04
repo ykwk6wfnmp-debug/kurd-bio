@@ -94,6 +94,30 @@ function createJsonStore(filePath) {
             scheduleFlush();
         },
 
+        /**
+         * Read-modify-write in one indivisible step.
+         *
+         * The mutator MUST be synchronous — that is the whole safety argument.
+         * Node runs one callback at a time, so a function containing no `await`
+         * cannot be interleaved with another request's mutation.
+         *
+         * Returns null when the user does not exist, { ok: false } when the
+         * mutator vetoes the change by returning false, otherwise { ok: true }.
+         */
+        async mutateUser(username, mutator) {
+            const current = users.get(username);
+            if (!current) return null;
+
+            // Work on a copy so a throwing or vetoing mutator cannot leave the
+            // stored record half-updated.
+            const draft = structuredClone(current);
+            if (mutator(draft) === false) return { ok: false, record: draft };
+
+            users.set(username, normalizeRecord(draft));
+            scheduleFlush();
+            return { ok: true, record: structuredClone(users.get(username)) };
+        },
+
         async listUsers() {
             return [...users.values()].map((r) => structuredClone(r));
         },

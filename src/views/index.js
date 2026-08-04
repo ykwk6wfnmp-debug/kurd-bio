@@ -19,6 +19,12 @@ function loginPage() {
                 <input type="text" id="username" name="username" autocomplete="username"
                        inputmode="latin" autocapitalize="none" spellcheck="false"
                        placeholder="یوزەرنەمەکەت بنووسە" maxlength="20">
+                <div id="email-row" hidden>
+                    <label for="email">ئیمەیڵ (ئارەزوومەندانە)</label>
+                    <input type="email" id="email" name="email" autocomplete="email"
+                           inputmode="email" autocapitalize="none" spellcheck="false"
+                           placeholder="you@example.com" maxlength="${LIMITS.email}">
+                </div>
                 <label for="password">وشەی تێپەڕ (Password)</label>
                 <input type="password" id="password" name="password" autocomplete="current-password"
                        placeholder="••••••••" maxlength="${LIMITS.passwordMax}">
@@ -149,6 +155,10 @@ function settingsPage() {
             <label for="new-username">ناوی بەکارهێنەری نوێ</label>
             <input type="text" id="new-username" maxlength="20" autocomplete="username"
                    autocapitalize="none" spellcheck="false">
+            <label for="email">ئیمەیڵ (ئارەزوومەندانە)</label>
+            <input type="email" id="email" autocomplete="email" inputmode="email"
+                   autocapitalize="none" spellcheck="false"
+                   placeholder="you@example.com" maxlength="${LIMITS.email}">
             <label for="current-password">وشەی تێپەڕی ئێستا</label>
             <input type="password" id="current-password" autocomplete="current-password" placeholder="••••••••">
             <label for="new-password">وشەی تێپەڕی نوێ (ئارەزوومەندانە)</label>
@@ -195,6 +205,11 @@ function adminPage() {
     <div class="container lg">
         ${backLink}
         <h2 class="gradient">👑 پەنەلی کۆنترۆڵی ئەدمن</h2>
+        <div class="card">
+            <h2 class="section">📊 ئاماری تۆمارکردن</h2>
+            <div class="stats-grid" id="stats-grid"></div>
+            <p class="hint" id="stats-note"></p>
+        </div>
         <div class="card">
             <h2 class="section" style="color:var(--green)">📋 بەکارهێنەرە چالاکەکان</h2>
             <table class="data-table" id="users-table"></table>

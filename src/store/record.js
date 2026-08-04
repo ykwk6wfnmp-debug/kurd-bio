@@ -13,11 +13,13 @@ function emptyProfile(username) {
     };
 }
 
-function createRecord({ username, passwordHash, role = 'user' }) {
+function createRecord({ username, passwordHash, role = 'user', email = '' }) {
     return {
         username,
         passwordHash,
         role,
+        // Optional, admin-visible only. Never included in publicProfile().
+        email,
         banned: false,
         balance: 0,
         ownedThemes: [],
@@ -43,6 +45,7 @@ function normalizeRecord(record) {
         username,
         passwordHash: record.passwordHash || '',
         role: record.role === 'admin' ? 'admin' : 'user',
+        email: typeof record.email === 'string' ? record.email : '',
         banned: Boolean(record.banned),
         balance: Number(record.balance) || 0,
         ownedThemes: Array.isArray(record.ownedThemes) ? record.ownedThemes : [],

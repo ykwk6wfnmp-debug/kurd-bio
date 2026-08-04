@@ -12,6 +12,7 @@ const LIMITS = {
     maxLinks: 20,
     passwordMin: 6,
     passwordMax: 100,
+    email: 120,
     // Cap on the base64 data URL itself (~225KB of actual image).
     avatarBytes: 300 * 1024
 };
@@ -48,6 +49,19 @@ function checkPassword(value) {
         fail(`وشەی تێپەڕ دەبێت لە نێوان ${LIMITS.passwordMin} و ${LIMITS.passwordMax} پیت بێت.`);
     }
     return password;
+}
+
+/**
+ * Optional — an empty value is valid and means "not provided".
+ * Deliberately permissive: strict RFC 5322 patterns reject real addresses, and
+ * the only thing that actually proves an address works is sending mail to it.
+ */
+function checkEmail(value) {
+    const email = asString(value).toLowerCase();
+    if (!email) return '';
+    if (email.length > LIMITS.email) fail(`ئیمەیڵ نابێت لە ${LIMITS.email} پیت زیاتر بێت.`);
+    if (!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/.test(email)) fail('ئیمەیڵەکە دروست نییە.');
+    return email;
 }
 
 function checkText(value, max, label) {
@@ -125,6 +139,7 @@ module.exports = {
     ValidationError,
     checkUsername,
     checkPassword,
+    checkEmail,
     checkText,
     checkUrl,
     checkAvatar,

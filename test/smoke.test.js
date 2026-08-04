@@ -346,6 +346,210 @@ test('admin logs in by role and can ban and unban', async () => {
     assert.strictEqual((await banned('POST', '/api/login', { username: 'victim', password: 'secret123' })).status, 200);
 });
 
+test('concurrent balance writes do not lose updates', async () => {
+    const req = client();
+    await req('POST', '/api/register', { username: 'wallet', password: 'secret123' });
+
+    const admin = client();
+    await admin('POST', '/api/login', { username: 'admin', password: 'admin-test-password' });
+
+    // 20 overlapping +1 credits must land as exactly +20.
+    await Promise.all(
+        Array.from({ length: 20 }, () =>
+            admin('POST', '/api/admin/balance', { username: 'wallet', amount: 1 })
+        )
+    );
+    assert.strictEqual((await store.getUser('wallet')).balance, 20);
+});
+
+test('a concurrent credit and profile save do not clobber each other', async () => {
+    // The pure form of the bug: both requests read, both write the whole record.
+    const req = client();
+    await req('POST', '/api/register', { username: 'shopper', password: 'secret123' });
+
+    const admin = client();
+    await admin('POST', '/api/login', { username: 'admin', password: 'admin-test-password' });
+
+    await Promise.all([
+        admin('POST', '/api/admin/balance', { username: 'shopper', amount: 30 }),
+        req('POST', '/api/save-bio', { name: 'Shopper', bio: 'hello', links: [] }),
+        req('POST', '/api/save-theme', { theme: 'theme_2' })
+    ]);
+
+    const record = await store.getUser('shopper');
+    assert.strictEqual(record.balance, 30, 'the credit must survive the concurrent writes');
+    assert.strictEqual(record.profile.name, 'Shopper', 'the profile save must survive too');
+});
+
+test('a theme purchase cannot overdraw under concurrency', async () => {
+    const req = client();
+    await req('POST', '/api/register', { username: 'oneshot', password: 'secret123' });
+
+    const user = await store.getUser('oneshot');
+    user.balance = 5; // exactly enough for one $5 VIP theme
+    await store.saveUser(user);
+
+    // Four parallel attempts to buy four different VIP themes on one balance.
+    const results = await Promise.all(
+        ['theme_10', 'theme_11', 'theme_12', 'theme_13'].map((theme) =>
+            req('POST', '/api/save-theme', { theme })
+        )
+    );
+
+    const bought = results.filter((r) => r.status === 200 && r.json.charged === 5).length;
+    const record = await store.getUser('oneshot');
+    assert.strictEqual(bought, 1, 'exactly one purchase may succeed');
+    assert.strictEqual(record.balance, 0);
+    assert.ok(record.balance >= 0, 'balance must never go negative');
+});
+
+test('admin stats count signups and exclude the seeded admin', async () => {
+    const admin = client();
+    await admin('POST', '/api/login', { username: 'admin', password: 'admin-test-password' });
+
+    const before = (await admin('GET', '/api/admin/stats')).json.stats;
+    assert.ok(before.totalUsers > 0);
+    assert.strictEqual(before.timezone, 'Asia/Baghdad');
+
+    // The admin row is seeded, not a signup, so it must not be counted.
+    const all = await store.listUsers();
+    assert.strictEqual(before.totalUsers, all.filter((u) => u.role !== 'admin').length);
+    assert.strictEqual(before.activeUsers + before.bannedUsers, before.totalUsers);
+
+    const fresh = client();
+    await fresh('POST', '/api/register', { username: 'newbie', password: 'secret123', email: 'n@e.com' });
+
+    const after = (await admin('GET', '/api/admin/stats')).json.stats;
+    assert.strictEqual(after.totalUsers, before.totalUsers + 1);
+    assert.strictEqual(after.newToday, before.newToday + 1);
+    assert.strictEqual(after.newThisWeek, before.newThisWeek + 1);
+    assert.strictEqual(after.withEmail, before.withEmail + 1);
+});
+
+test('admin stats are admin-only', async () => {
+    const req = client();
+    await req('POST', '/api/login', { username: 'ahmad', password: 'secret123' });
+    assert.strictEqual((await req('GET', '/api/admin/stats')).status, 403);
+
+    const anon = client();
+    assert.strictEqual((await anon('GET', '/api/admin/stats')).status, 403);
+});
+
+test('email is optional at registration and validated', async () => {
+    const withEmail = client();
+    const ok = await withEmail('POST', '/api/register', {
+        username: 'mailed',
+        password: 'secret123',
+        email: 'Someone@Example.COM'
+    });
+    assert.strictEqual(ok.status, 200);
+    // Normalised to lowercase for consistent storage.
+    assert.strictEqual((await store.getUser('mailed')).email, 'someone@example.com');
+
+    const noEmail = client();
+    assert.strictEqual((await noEmail('POST', '/api/register', { username: 'nomail', password: 'secret123' })).status, 200);
+    assert.strictEqual((await store.getUser('nomail')).email, '');
+
+    const bad = client();
+    const rejected = await bad('POST', '/api/register', {
+        username: 'badmail',
+        password: 'secret123',
+        email: 'not-an-email'
+    });
+    assert.strictEqual(rejected.status, 400);
+    assert.strictEqual(await store.getUser('badmail'), null);
+});
+
+test('a user can set their email from settings', async () => {
+    const req = client();
+    await req('POST', '/api/register', { username: 'backfill', password: 'secret123' });
+
+    const res = await req('POST', '/api/account', {
+        currentPassword: 'secret123',
+        newUsername: 'backfill',
+        email: 'backfill@example.com'
+    });
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual((await store.getUser('backfill')).email, 'backfill@example.com');
+});
+
+test('email is visible to admin and to nobody else', async () => {
+    const admin = client();
+    await admin('POST', '/api/login', { username: 'admin', password: 'admin-test-password' });
+    const list = await admin('GET', '/api/admin/users');
+    const mailed = list.json.users.find((u) => u.username === 'mailed');
+    assert.strictEqual(mailed.email, 'someone@example.com');
+
+    // Not in the public API, not in the public page, not to another logged-in user.
+    const anon = client();
+    const publicProfile = await anon('GET', '/api/public-profile/mailed');
+    assert.strictEqual(publicProfile.json.profile.email, undefined);
+    assert.ok(!publicProfile.text.includes('someone@example.com'));
+
+    const page = await anon('GET', '/u/mailed');
+    assert.ok(!page.text.includes('someone@example.com'));
+
+    const other = client();
+    await other('POST', '/api/login', { username: 'ahmad', password: 'secret123' });
+    const me = await other('GET', '/api/me');
+    assert.strictEqual(me.json.user.username, 'ahmad');
+    assert.ok(!JSON.stringify(me.json).includes('someone@example.com'));
+});
+
+test('banning kills a live session on the very next request', async () => {
+    const victim = client();
+    await victim('POST', '/api/register', { username: 'livebanned', password: 'secret123' });
+    assert.strictEqual((await victim('GET', '/api/me')).status, 200); // session works
+
+    const admin = client();
+    await admin('POST', '/api/login', { username: 'admin', password: 'admin-test-password' });
+    await admin('POST', '/api/admin/ban', { username: 'livebanned' });
+
+    // The cookie the victim already holds must stop working immediately.
+    assert.strictEqual((await victim('GET', '/api/me')).status, 401);
+    assert.strictEqual((await victim('POST', '/api/save-bio', { name: 'x', links: [] })).status, 401);
+
+    // And their public profile disappears.
+    const anon = client();
+    assert.strictEqual((await anon('GET', '/u/livebanned')).status, 404);
+
+    // Unban restores everything, including the balance and profile.
+    await admin('POST', '/api/admin/unban', { username: 'livebanned' });
+    const back = client();
+    assert.strictEqual((await back('POST', '/api/login', { username: 'livebanned', password: 'secret123' })).status, 200);
+    assert.strictEqual((await anon('GET', '/u/livebanned')).status, 200);
+});
+
+test('the admin account itself cannot be banned', async () => {
+    const admin = client();
+    await admin('POST', '/api/login', { username: 'admin', password: 'admin-test-password' });
+    const res = await admin('POST', '/api/admin/ban', { username: 'admin' });
+    assert.strictEqual(res.status, 400);
+    assert.strictEqual((await store.getUser('admin')).banned, false);
+});
+
+test('balance adjustment is admin-only and validated', async () => {
+    const req = client();
+    await req('POST', '/api/login', { username: 'ahmad', password: 'secret123' });
+    assert.strictEqual((await req('POST', '/api/admin/balance', { username: 'ahmad', amount: 999 })).status, 403);
+
+    const admin = client();
+    await admin('POST', '/api/login', { username: 'admin', password: 'admin-test-password' });
+    for (const amount of [0, 'abc', 999999, -999999, null]) {
+        assert.strictEqual(
+            (await admin('POST', '/api/admin/balance', { username: 'ahmad', amount })).status,
+            400,
+            `amount ${amount} should be rejected`
+        );
+    }
+    assert.strictEqual((await admin('POST', '/api/admin/balance', { username: 'ghost', amount: 5 })).status, 404);
+
+    // Negative adjustments work as corrections but can never go below zero.
+    await admin('POST', '/api/admin/balance', { username: 'ahmad', amount: 10 });
+    const floored = await admin('POST', '/api/admin/balance', { username: 'ahmad', amount: -500 });
+    assert.strictEqual(floored.json.balance, 0);
+});
+
 test('the hardcoded admin/admin123 credential is gone', async () => {
     const anon = client();
     const res = await anon('POST', '/api/login', { username: 'admin', password: 'admin123' });

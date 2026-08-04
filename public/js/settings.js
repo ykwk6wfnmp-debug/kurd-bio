@@ -4,6 +4,7 @@
     var KB = window.KB;
     var saveBtn = document.getElementById('save-btn');
     var usernameInput = document.getElementById('new-username');
+    var emailInput = document.getElementById('email');
 
     saveBtn.addEventListener('click', async function () {
         var currentPassword = document.getElementById('current-password').value;
@@ -15,7 +16,8 @@
             body: {
                 currentPassword: currentPassword,
                 newUsername: usernameInput.value.trim().toLowerCase(),
-                newPassword: document.getElementById('new-password').value
+                newPassword: document.getElementById('new-password').value,
+                email: emailInput.value.trim()
             }
         });
         saveBtn.disabled = false;
@@ -27,6 +29,8 @@
 
     (async function load() {
         var data = await KB.api('/api/me');
-        if (data.success) usernameInput.value = data.user.username;
+        if (!data.success) return;
+        usernameInput.value = data.user.username;
+        emailInput.value = data.user.email || '';
     })();
 })();

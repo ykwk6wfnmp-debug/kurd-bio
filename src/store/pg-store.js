@@ -50,6 +50,48 @@ function createPgStore(connectionString) {
             );
         },
 
+        /**
+         * Read-modify-write in one transaction. SELECT ... FOR UPDATE holds a
+         * row lock for the duration, so concurrent mutations of the same user
+         * serialise instead of overwriting each other.
+         *
+         * The mutator MUST be synchronous — running I/O inside would hold the
+         * row lock open across a network round trip.
+         */
+        async mutateUser(username, mutator) {
+            const client = await pool.connect();
+            try {
+                await client.query('BEGIN');
+                const { rows } = await client.query(
+                    'SELECT data FROM kb_users WHERE username = $1 FOR UPDATE',
+                    [username]
+                );
+                if (!rows.length) {
+                    await client.query('ROLLBACK');
+                    return null;
+                }
+
+                const draft = normalizeRecord(rows[0].data);
+                if (mutator(draft) === false) {
+                    await client.query('ROLLBACK');
+                    return { ok: false, record: draft };
+                }
+
+                const next = normalizeRecord(draft);
+                await client.query(
+                    'UPDATE kb_users SET data = $2, updated_at = now() WHERE username = $1',
+                    [username, next]
+                );
+                await client.query('COMMIT');
+                return { ok: true, record: next };
+            } catch (err) {
+                await client.query('ROLLBACK').catch(() => {});
+                throw err;
+            } finally {
+                client.release();
+            }
+        },
+
         async listUsers() {
             const { rows } = await pool.query('SELECT data FROM kb_users ORDER BY created_at ASC');
             return rows.map((row) => normalizeRecord(row.data));

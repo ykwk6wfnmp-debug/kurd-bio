@@ -9,6 +9,19 @@ function bool(value, fallback) {
 
 const isProduction = process.env.NODE_ENV === 'production';
 
+// Admin stats report "today" in local time, not the server's UTC — otherwise
+// the day rolls over at 3am for Kurdish users. Validated once, here, because an
+// invalid zone makes Intl throw at call time instead of at boot.
+function resolveTimezone(name) {
+    try {
+        new Intl.DateTimeFormat('en-CA', { timeZone: name });
+        return name;
+    } catch (_) {
+        console.warn(`[config] STATS_TIMEZONE "${name}" is not a valid zone — falling back to UTC.`);
+        return 'UTC';
+    }
+}
+
 let sessionSecret = process.env.SESSION_SECRET;
 let sessionSecretIsEphemeral = false;
 if (!sessionSecret) {
@@ -35,6 +48,9 @@ module.exports = {
     // Admin seed
     adminUser: (process.env.ADMIN_USER || 'admin').toLowerCase(),
     adminPassword: process.env.ADMIN_PASSWORD || '',
+
+    // Timezone the admin stats use to decide what counts as "today".
+    statsTimezone: resolveTimezone(process.env.STATS_TIMEZONE || 'Asia/Baghdad'),
 
     // Public URL used when building the shareable profile link.
     publicBaseUrl: (process.env.PUBLIC_BASE_URL || '').replace(/\/+$/, ''),

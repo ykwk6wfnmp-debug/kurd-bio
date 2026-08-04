@@ -28,6 +28,7 @@ Also set:
 | `ADMIN_USER` / `ADMIN_PASSWORD` | Admin credentials. There is no hardcoded default. |
 | `PUBLIC_BASE_URL` | Canonical origin (e.g. `https://kurdbio.onrender.com`) used to build the shareable profile link. |
 | `CORS_ORIGIN`     | Only if another origin must call the API. Empty means same-origin only. |
+| `STATS_TIMEZONE`  | Timezone the admin signup stats treat as "today". Defaults to `Asia/Baghdad`; an invalid zone falls back to UTC. |
 
 See `.env.example`. Render settings: build `npm install`, start `npm start`,
 health check path `/health`.
@@ -71,6 +72,7 @@ One record per user, in Postgres as a `jsonb` column or as an entry in
   "role": "user",                // or "admin"
   "banned": false,
   "balance": 0,
+  "email": "",                   // optional, admin-visible only, never public
   "ownedThemes": ["theme_71"],   // VIP themes are charged once, then owned
   "sessionVersion": 1,           // bumped to invalidate existing cookies
   "profile": { "name": "", "bio": "", "avatar": "", "theme": "theme_1",
@@ -96,3 +98,9 @@ One record per user, in Postgres as a `jsonb` column or as an entry in
   creates a user; `GET /api/me` is the owner-only endpoint that exposes balance.
 - Login and register are rate limited per IP (in-memory — needs a shared store
   if this is ever run on more than one instance).
+- Balance changes go through `store.mutateUser()`, which is a synchronous
+  critical section in the JSON store and a `SELECT … FOR UPDATE` transaction in
+  Postgres. A plain read-modify-write loses concurrent updates: `saveUser()`
+  writes the whole record, so an admin credit landing while the user changes a
+  theme would be silently discarded. Any mutator passed to it must be
+  synchronous — that is what makes it safe.

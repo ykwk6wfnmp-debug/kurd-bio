@@ -8,6 +8,7 @@ const { rateLimit } = require('../lib/rate-limit');
 const {
     checkUsername,
     checkPassword,
+    checkEmail,
     checkText,
     checkAvatar,
     checkSocials,
@@ -110,14 +111,23 @@ function profileRoutes(store) {
     router.post('/save-bio', requireAuth, async (req, res, next) => {
         try {
             // The username always comes from the session, never from the body.
-            const record = req.user;
-            record.profile.name = checkText(req.body.name, LIMITS.name, 'ناو') || record.username;
-            record.profile.bio = checkText(req.body.bio, LIMITS.bio, 'کورتە دەق');
-            record.profile.avatar = checkAvatar(req.body.avatar);
-            record.profile.socials = checkSocials(req.body.socials);
-            record.profile.links = checkLinks(req.body.links);
+            // Validate everything up front so the mutator itself cannot throw.
+            const profile = {
+                name: checkText(req.body.name, LIMITS.name, 'ناو') || req.user.username,
+                bio: checkText(req.body.bio, LIMITS.bio, 'کورتە دەق'),
+                avatar: checkAvatar(req.body.avatar),
+                socials: checkSocials(req.body.socials),
+                links: checkLinks(req.body.links)
+            };
 
-            await store.saveUser(record);
+            // Touch only the profile fields. Writing the whole record back here
+            // would silently discard a balance change made while the user was
+            // filling in this form.
+            const outcome = await store.mutateUser(req.user.username, (draft) => {
+                Object.assign(draft.profile, profile);
+            });
+            if (!outcome) return res.status(404).json({ success: false, message: 'بەکارهێنەر نەدۆزرایەوە!' });
+
             res.json({ success: true, redirect: '/dashboard' });
         } catch (err) {
             next(err);
@@ -132,30 +142,41 @@ function profileRoutes(store) {
             }
 
             const theme = getTheme(themeId);
-            const record = req.user;
+            // Set inside the mutator, which both backends run exactly once per
+            // call with no retry loop, so this reflects what was really charged
+            // against the balance at commit time.
             let charged = 0;
 
-            // Charge once, on first purchase only. Switching back to a theme the
-            // user already owns is always free.
-            if (theme.vip && !record.ownedThemes.includes(theme.id)) {
-                if (record.balance < theme.price) {
-                    return res.status(402).json({
-                        success: false,
-                        message: `باڵانسەکەت بەشی ئەم دیزاینە ناکات. پێویستت بە ${theme.price} $ ـە.`
-                    });
+            // Debit and theme change happen in one indivisible step: reading the
+            // balance and writing it back separately loses any concurrent admin
+            // credit, and could let two parallel requests buy on one balance.
+            const outcome = await store.mutateUser(req.user.username, (draft) => {
+                // Charge once, on first purchase only. Switching back to a theme
+                // the user already owns is always free.
+                if (theme.vip && !draft.ownedThemes.includes(theme.id)) {
+                    if (draft.balance < theme.price) return false; // veto, nothing written
+                    draft.balance -= theme.price;
+                    draft.ownedThemes.push(theme.id);
+                    charged = theme.price;
                 }
-                record.balance -= theme.price;
-                record.ownedThemes.push(theme.id);
-                charged = theme.price;
+                draft.profile.theme = theme.id;
+            });
+
+            if (!outcome) {
+                return res.status(404).json({ success: false, message: 'بەکارهێنەر نەدۆزرایەوە!' });
+            }
+            if (!outcome.ok) {
+                return res.status(402).json({
+                    success: false,
+                    message: `باڵانسەکەت بەشی ئەم دیزاینە ناکات. پێویستت بە ${theme.price} $ ـە.`
+                });
             }
 
-            record.profile.theme = theme.id;
-            await store.saveUser(record);
             res.json({
                 success: true,
                 charged,
-                balance: record.balance,
-                owned: record.ownedThemes
+                balance: outcome.record.balance,
+                owned: outcome.record.ownedThemes
             });
         } catch (err) {
             next(err);
@@ -179,27 +200,34 @@ function profileRoutes(store) {
             const newUsername = checkUsername(req.body.newUsername || record.username);
             const wantsRename = newUsername !== record.username;
             const rawNewPassword = String(req.body.newPassword || '');
+            // Optional; blank clears it. Admin-visible only, never public.
+            const email = checkEmail(req.body.email);
 
             if (wantsRename && (await store.getUser(newUsername))) {
                 return res.status(409).json({ success: false, message: 'ئەم یوزەرنەمەیە پێشتر هەیە!' });
             }
 
-            if (rawNewPassword) {
-                record.passwordHash = await bcrypt.hash(checkPassword(rawNewPassword), BCRYPT_ROUNDS);
-            }
+            // Hash before the mutator, which must stay synchronous.
+            const newHash = rawNewPassword
+                ? await bcrypt.hash(checkPassword(rawNewPassword), BCRYPT_ROUNDS)
+                : null;
 
-            // Any credential change invalidates cookies issued before it.
-            record.sessionVersion += 1;
-            await store.saveUser(record);
+            const outcome = await store.mutateUser(record.username, (draft) => {
+                if (newHash) draft.passwordHash = newHash;
+                draft.email = email;
+                // Any credential change invalidates cookies issued before it.
+                draft.sessionVersion += 1;
+            });
+            if (!outcome) return res.status(404).json({ success: false, message: 'بەکارهێنەر نەدۆزرایەوە!' });
+            record.sessionVersion = outcome.record.sessionVersion;
 
             if (wantsRename) {
-                await store.renameUser(record.username, newUsername);
+                const oldUsername = record.username;
+                await store.renameUser(oldUsername, newUsername);
                 // Keep the display name in sync when it was just the old handle.
-                const renamed = await store.getUser(newUsername);
-                if (renamed.profile.name === record.username) {
-                    renamed.profile.name = newUsername;
-                    await store.saveUser(renamed);
-                }
+                await store.mutateUser(newUsername, (draft) => {
+                    if (draft.profile.name === oldUsername) draft.profile.name = newUsername;
+                });
                 record.username = newUsername;
             }
 

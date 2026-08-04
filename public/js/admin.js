@@ -1,4 +1,5 @@
-/* Admin panel: list, ban, unban, credit balance. Passwords are never shown.
+/* Admin panel: stats, list, ban, unban, balance adjustment.
+   Passwords are never shown. Email is admin-only and appears nowhere else.
    Cells carry data-label so the CSS can turn rows into cards on phones. */
 (function () {
     'use strict';
@@ -29,14 +30,71 @@
         load();
     }
 
+    /* ---------- stats ---------- */
+
+    function tile(label, value, tone) {
+        return KB.el('div', { class: 'stat' + (tone ? ' ' + tone : '') }, [
+            KB.el('div', { class: 'stat-value', text: KB.num(value) }),
+            KB.el('div', { class: 'stat-label', text: label })
+        ]);
+    }
+
+    async function loadStats() {
+        var data = await KB.api('/api/admin/stats');
+        if (!data.success) return;
+        var s = data.stats;
+
+        var box = document.getElementById('stats-grid');
+        box.textContent = '';
+        [
+            tile('کۆی بەکارهێنەران', s.totalUsers),
+            tile('چالاک', s.activeUsers, 'good'),
+            tile('بانکراو', s.bannedUsers, 'bad'),
+            tile('ئەمڕۆ', s.newToday, 'accent'),
+            tile('٧ ڕۆژی ڕابردوو', s.newThisWeek, 'accent'),
+            tile('بە ئیمەیڵ', s.withEmail)
+        ].forEach(function (node) { box.appendChild(node); });
+
+        document.getElementById('stats-note').textContent =
+            'کاتی ناوخۆیی: ' + s.timezone + ' — «ئەمڕۆ» بەپێی ڕۆژی ناوخۆیی دەژمێردرێت.';
+    }
+
+    /* ---------- balance control ---------- */
+
+    function balanceControl(user) {
+        var input = KB.el('input', {
+            type: 'number',
+            class: 'amount-input',
+            value: '10',
+            step: '1',
+            min: '-10000',
+            max: '10000',
+            'aria-label': 'بڕی باڵانس بۆ ' + user.username
+        });
+
+        var apply = actionButton('زیادکردن', 'credit-btn', async function () {
+            var amount = Number(input.value);
+            if (!isFinite(amount) || amount === 0) return KB.toast('بڕێکی دروست بنووسە.', true);
+
+            apply.disabled = true;
+            var data = await KB.api('/api/admin/balance', {
+                method: 'POST',
+                body: { username: user.username, amount: amount }
+            });
+            apply.disabled = false;
+
+            if (!data.success) return KB.toast(data.message, true);
+            KB.toast(user.username + ': باڵانس بوو بە ' + KB.num(data.balance) + ' $ ✅');
+            load();
+        });
+
+        return KB.el('div', { class: 'balance-control' }, [input, apply]);
+    }
+
+    /* ---------- rows ---------- */
+
     function activeRow(user) {
-        var actions = [
-            actionButton('باڵانس +', 'credit-btn', function () {
-                var amount = window.prompt('چەند دۆلار زیاد بکرێت بۆ ' + user.username + '؟', '5');
-                if (amount === null) return;
-                post('/api/admin/balance', { username: user.username, amount: Number(amount) }, 'باڵانس نوێکرایەوە ✅');
-            })
-        ];
+        var actions = [balanceControl(user)];
 
         if (user.role !== 'admin') {
             actions.push(
@@ -54,6 +112,7 @@
 
         return KB.el('tr', {}, [
             cell('بەکارهێنەر', name),
+            cell('ئیمەیڵ', KB.el('span', { class: 'email-cell', text: user.email || '—' })),
             cell('باڵانس', KB.num(user.balance) + ' $'),
             cell('لینک', KB.num(user.links)),
             cell('دیزاین', KB.num(user.ownedThemes)),
@@ -64,6 +123,7 @@
     function bannedRow(user) {
         return KB.el('tr', {}, [
             cell('بەکارهێنەر', user.username),
+            cell('ئیمەیڵ', KB.el('span', { class: 'email-cell', text: user.email || '—' })),
             cell('', KB.el('div', { class: 'row-actions' }, [
                 actionButton('لادانی بان', 'unban-btn', function () {
                     post('/api/admin/unban', { username: user.username }, 'بان لادرا ✅');
@@ -89,16 +149,17 @@
 
         fill(
             document.getElementById('users-table'),
-            ['بەکارهێنەر', 'باڵانس', 'لینک', 'دیزاین', 'کردار'],
+            ['بەکارهێنەر', 'ئیمەیڵ', 'باڵانس', 'لینک', 'دیزاین', 'کردار'],
             data.users.map(activeRow),
             'هیچ بەکارهێنەرێک نییە.'
         );
         fill(
             document.getElementById('banned-table'),
-            ['بەکارهێنەر', 'کردار'],
+            ['بەکارهێنەر', 'ئیمەیڵ', 'کردار'],
             data.banned.map(bannedRow),
             'هیچ بەکارهێنەرێکی بانکراو نییە.'
         );
+        loadStats();
     }
 
     load();
