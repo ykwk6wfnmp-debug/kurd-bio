@@ -205,8 +205,12 @@ function adminPage() {
     <div class="container lg">
         ${backLink}
         <h2 class="gradient">👑 پەنەلی کۆنترۆڵی ئەدمن</h2>
+        <div id="storage-warning"></div>
         <div class="card">
-            <h2 class="section">📊 ئاماری تۆمارکردن</h2>
+            <div class="section-row">
+                <h2 class="section">📊 ئاماری تۆمارکردن</h2>
+                <button class="refresh-btn" id="refresh-btn" type="button">🔄 نوێکردنەوە</button>
+            </div>
             <div class="stats-grid" id="stats-grid"></div>
             <p class="hint" id="stats-note"></p>
         </div>

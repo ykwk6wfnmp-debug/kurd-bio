@@ -57,6 +57,28 @@
 
         document.getElementById('stats-note').textContent =
             'کاتی ناوخۆیی: ' + s.timezone + ' — «ئەمڕۆ» بەپێی ڕۆژی ناوخۆیی دەژمێردرێت.';
+
+        renderStorageWarning(s.storage);
+    }
+
+    /* If storage is not persistent, new signups disappear on every restart —
+       the single most likely reason a user "does not show up". Say so loudly. */
+    function renderStorageWarning(storage) {
+        var box = document.getElementById('storage-warning');
+        box.textContent = '';
+        if (!storage || storage.persistent) return;
+
+        box.appendChild(
+            KB.el('div', { class: 'warning-banner' }, [
+                KB.el('strong', { text: '⚠️ زانیارییەکان بە جێگیری هەڵناگیرێن' }),
+                KB.el('div', {
+                    text:
+                        'ئێستا کۆگای فایلی (' + storage.kind + ') بەکاردێت. لەسەر Render ' +
+                        'سیستەمی فایل کاتییە، بۆیە هەموو بەکارهێنەرێکی نوێ لەگەڵ هەر ' +
+                        'ڕیستارت و بڵاوکردنەوەیەکدا دەسڕدرێتەوە. DATABASE_URL دابنێ.'
+                })
+            ])
+        );
     }
 
     /* ---------- balance control ---------- */
@@ -161,6 +183,19 @@
         );
         loadStats();
     }
+
+    document.getElementById('refresh-btn').addEventListener('click', function () {
+        load();
+        KB.toast('نوێکرایەوە ✅');
+    });
+
+    // Pick up signups made elsewhere without needing a manual reload.
+    setInterval(function () {
+        if (!document.hidden) load();
+    }, 30000);
+    document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) load();
+    });
 
     load();
 })();

@@ -37,6 +37,23 @@ function createApp(store) {
     app.use(cookieParser());
     app.use(express.static(path.join(__dirname, '..', 'public'), { maxAge: '1h', index: false }));
 
+    /**
+     * Nothing dynamic may be cached.
+     *
+     * These responses carried no Cache-Control at all, only an ETag, which
+     * leaves them open to heuristic caching by browsers and intermediary
+     * proxies — mobile carriers especially. That can hide a brand new signup
+     * from the admin list, and would let a cached dashboard survive a logout
+     * on a shared phone. Static assets are served above and keep their 1h.
+     *
+     * Individual routes may still opt in to caching afterwards; the immutable
+     * theme catalog does exactly that.
+     */
+    app.use((req, res, next) => {
+        res.set('Cache-Control', 'no-store, must-revalidate');
+        next();
+    });
+
     app.use(loadSession(store));
 
     app.use('/api', authRoutes(store));

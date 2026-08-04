@@ -71,7 +71,13 @@ function client(ip) {
         } catch (_) {
             /* html response */
         }
-        return { status: res.status, json, text, location: res.headers.get('location') };
+        return {
+            status: res.status,
+            json,
+            text,
+            location: res.headers.get('location'),
+            headers: Object.fromEntries(res.headers)
+        };
     };
 }
 
@@ -590,6 +596,56 @@ test('server-rendered pages use Latin digits for quantities', async () => {
     const notFound = await req('GET', '/u/definitely_missing');
     assert.strictEqual(notFound.status, 404);
     assert.ok(!/[٠-٩]/.test(notFound.text), '404 page has Arabic-Indic digits');
+});
+
+test('a brand new signup appears in the admin list immediately', async () => {
+    const admin = client();
+    await admin('POST', '/api/login', { username: 'admin', password: 'admin-test-password' });
+
+    const before = await admin('GET', '/api/admin/users');
+    const beforeNames = before.json.users.map((u) => u.username);
+    assert.ok(!beforeNames.includes('freshsignup'));
+
+    const phone = client();
+    const reg = await phone('POST', '/api/register', { username: 'freshsignup', password: 'secret123' });
+    assert.strictEqual(reg.status, 200);
+
+    // Persisted to the store...
+    assert.ok(await store.getUser('freshsignup'), 'user must be in the store');
+
+    // ...and visible on the very next admin fetch, with the stats agreeing.
+    const after = await admin('GET', '/api/admin/users');
+    assert.ok(after.json.users.map((u) => u.username).includes('freshsignup'));
+
+    const stats = await admin('GET', '/api/admin/stats');
+    assert.strictEqual(stats.json.stats.totalUsers, before.json.users.length + before.json.banned.length);
+});
+
+test('dynamic responses are never cacheable', async () => {
+    // These carried no Cache-Control at all, only an ETag, leaving them open to
+    // heuristic caching by browsers and carrier proxies — which can hide a new
+    // signup from the admin list and outlive a logout on a shared phone.
+    const admin = client();
+    await admin('POST', '/api/login', { username: 'admin', password: 'admin-test-password' });
+
+    for (const url of ['/api/admin/users', '/api/admin/stats', '/api/me', '/admin', '/dashboard']) {
+        const res = await admin('GET', url);
+        assert.match(res.headers['cache-control'] || '', /no-store/, `${url} must not be cacheable`);
+    }
+
+    // The immutable theme catalog still opts back in to caching.
+    const themes = await admin('GET', '/api/themes');
+    assert.match(themes.headers['cache-control'] || '', /max-age=300/);
+});
+
+test('admin stats report whether storage is persistent', async () => {
+    const admin = client();
+    await admin('POST', '/api/login', { username: 'admin', password: 'admin-test-password' });
+    const { storage } = (await admin('GET', '/api/admin/stats')).json.stats;
+
+    // Tests run on the JSON store, which is not durable on an ephemeral host.
+    assert.strictEqual(storage.kind, 'json');
+    assert.strictEqual(storage.persistent, false);
 });
 
 test('the hardcoded admin/admin123 credential is gone', async () => {

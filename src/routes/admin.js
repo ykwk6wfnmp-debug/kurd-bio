@@ -84,7 +84,14 @@ function adminRoutes(store) {
                     withEmail: signups.filter((u) => u.email).length,
                     newToday,
                     newThisWeek,
-                    timezone: config.statsTimezone
+                    timezone: config.statsTimezone,
+                    // Surfaced so "my new signup vanished" is answerable at a
+                    // glance: on an ephemeral filesystem the JSON store is
+                    // wiped on every restart, deploy and idle spin-down.
+                    storage: {
+                        kind: store.kind,
+                        persistent: store.kind === 'postgres'
+                    }
                 }
             });
         } catch (err) {
