@@ -57,7 +57,7 @@ function dashboardPage({ shareUrl, isAdmin }) {
                 </div>
             </div>
             <a href="/editor" class="menu-btn">⚙️ ڕێکخستنی پڕۆفایل و وێنە</a>
-            <a href="/themes" class="menu-btn btn-themes">🎨 گالەری ١٠٠٠ دیزاین</a>
+            <a href="/themes" class="menu-btn btn-themes">🎨 گالەری 1000 دیزاین</a>
             <a href="/balance" class="menu-btn btn-balance">💰 باڵانس و پارەخستنە سەر</a>
             <a href="/settings" class="menu-btn btn-settings">🛠️ ڕێکخستنی هەژمار</a>
             ${isAdmin ? '<a href="/admin" class="menu-btn btn-admin">👑 پەنەلی ئەدمن</a>' : ''}
@@ -120,7 +120,7 @@ function editorPage() {
 
 function themesPage() {
     return layout({
-        title: 'KurdBio - ١٠٠٠ دیزاین',
+        title: 'KurdBio - 1000 دیزاین',
         script: '/js/themes.js',
         body: `
 <main class="app">
@@ -128,8 +128,8 @@ function themesPage() {
         ${backLink}
         <h2 class="gradient">🎨 گالەری دیزاینەکان</h2>
         <div class="subtitle">
-            <span id="catalog-count">١٠٠٠ دیزاین</span> لە ١٠ خێزانی جیاواز —
-            <span class="balance-pill" id="balance-pill">باڵانس: ٠ $</span>
+            <span id="catalog-count">1000 دیزاین</span> لە 10 خێزانی جیاواز —
+            <span class="balance-pill" id="balance-pill">باڵانس: 0 $</span>
         </div>
         <div class="themes-bar">
             <div class="chips" id="family-chips" role="group" aria-label="جۆرەکانی دیزاین"></div>
@@ -253,7 +253,7 @@ function notFoundPage() {
 <main class="app center">
     <div class="container sm">
         <div class="card notice">
-            <h2 class="gradient">٤٠٤ — لاپەڕەکە نەدۆزرایەوە</h2>
+            <h2 class="gradient">404 — لاپەڕەکە نەدۆزرایەوە</h2>
             <p>ئەم لینکە هەڵەیە یان سڕاوەتەوە.</p>
             <a href="/" class="menu-btn">گەڕانەوە بۆ سەرەتا</a>
         </div>

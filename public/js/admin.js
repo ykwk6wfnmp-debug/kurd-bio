@@ -51,7 +51,7 @@
             tile('چالاک', s.activeUsers, 'good'),
             tile('بانکراو', s.bannedUsers, 'bad'),
             tile('ئەمڕۆ', s.newToday, 'accent'),
-            tile('٧ ڕۆژی ڕابردوو', s.newThisWeek, 'accent'),
+            tile('7 ڕۆژی ڕابردوو', s.newThisWeek, 'accent'),
             tile('بە ئیمەیڵ', s.withEmail)
         ].forEach(function (node) { box.appendChild(node); });
 

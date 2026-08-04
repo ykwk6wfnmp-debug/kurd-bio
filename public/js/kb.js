@@ -84,9 +84,18 @@
         return node;
     }
 
-    /* ١٢٣ instead of 123 — the UI is Kurdish Sorani throughout. */
+    /**
+     * The single place quantities get formatted for display.
+     *
+     * Latin digits, deliberately. Arabic-Indic numerals were used here before,
+     * but U+0660 (ARABIC-INDIC DIGIT ZERO) is drawn as a small dot, so every
+     * zero balance, link count and stat rendered as "·" and read as a broken
+     * placeholder rather than a number. Latin digits are standard in Kurdish
+     * Sorani digital text and are unambiguous for money and counts.
+     */
     function num(value) {
-        return String(value).replace(/\d/g, function (d) { return '٠١٢٣٤٥٦٧٨٩'[Number(d)]; });
+        var n = Number(value);
+        return Number.isFinite(n) ? String(n) : String(value);
     }
 
     /* Placeholder cards shown while a page of data is in flight. */

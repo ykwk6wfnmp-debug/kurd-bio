@@ -550,6 +550,48 @@ test('balance adjustment is admin-only and validated', async () => {
     assert.strictEqual(floored.json.balance, 0);
 });
 
+test('numbers render as readable Latin digits, not Arabic-Indic', () => {
+    // Regression: KB.num used to emit Arabic-Indic numerals, and U+0660
+    // (ARABIC-INDIC DIGIT ZERO) is drawn as a small dot — so every zero
+    // balance and count in the admin panel rendered as "·" and read as a
+    // broken placeholder. Load the real shipped file, not a copy of it.
+    const sandbox = { window: {} };
+    const source = fs.readFileSync(path.join(__dirname, '..', 'public', 'js', 'kb.js'), 'utf8');
+    new Function('window', source).call(sandbox, sandbox.window);
+    const num = sandbox.window.KB.num;
+
+    assert.strictEqual(num(0), '0');
+    assert.strictEqual(num(1), '1');
+    assert.strictEqual(num(42), '42');
+    assert.strictEqual(num(7.5), '7.5');
+    assert.strictEqual(num(1000), '1000');
+
+    for (const value of [0, 1, 9, 10, 2026, 7.5]) {
+        assert.ok(!/[٠-٩]/.test(num(value)), `Arabic-Indic digit in num(${value})`);
+    }
+});
+
+test('server-rendered pages use Latin digits for quantities', async () => {
+    // /themes and /dashboard are behind requireAuth — an anonymous client gets
+    // a 302 with an empty body, which would pass this assertion vacuously.
+    const req = client();
+    await req('POST', '/api/login', { username: 'ahmad', password: 'secret123' });
+
+    // The balance placeholder is the worst offender: "٠ $" renders as "· $".
+    const themes = await req('GET', '/themes');
+    assert.strictEqual(themes.status, 200);
+    assert.ok(themes.text.includes('باڵانس: 0 $'), 'balance placeholder should use a Latin zero');
+    assert.ok(!/[٠-٩]/.test(themes.text), 'themes page has Arabic-Indic digits');
+
+    const dashboard = await req('GET', '/dashboard');
+    assert.strictEqual(dashboard.status, 200);
+    assert.ok(!/[٠-٩]/.test(dashboard.text), 'dashboard has Arabic-Indic digits');
+
+    const notFound = await req('GET', '/u/definitely_missing');
+    assert.strictEqual(notFound.status, 404);
+    assert.ok(!/[٠-٩]/.test(notFound.text), '404 page has Arabic-Indic digits');
+});
+
 test('the hardcoded admin/admin123 credential is gone', async () => {
     const anon = client();
     const res = await anon('POST', '/api/login', { username: 'admin', password: 'admin123' });
