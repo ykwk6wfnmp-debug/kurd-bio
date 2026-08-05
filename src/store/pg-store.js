@@ -1,6 +1,5 @@
 'use strict';
 
-const { Pool } = require('pg');
 const { normalizeRecord } = require('./record');
 
 /**
@@ -10,7 +9,10 @@ const { normalizeRecord } = require('./record');
  * The whole user record lives in a jsonb column: the app only ever reads a
  * user by primary key or lists everyone, so a wider schema would buy nothing.
  */
-function createPgStore(connectionString) {
+// `pgModule` is injectable purely so tests can execute this file's real SQL
+// against an in-memory Postgres. Production always gets the real driver.
+function createPgStore(connectionString, pgModule) {
+    const { Pool } = pgModule || require('pg');
     const pool = new Pool({
         connectionString,
         // Managed Postgres (Neon, Render, Supabase) requires TLS but serves a
@@ -92,9 +94,51 @@ function createPgStore(connectionString) {
             }
         },
 
+        /**
+         * Identifies exactly which database this process is talking to.
+         * Answers "is the write going somewhere else?" without needing access
+         * to the host's environment. Never exposes the password.
+         */
+        async describe() {
+            let host = 'unknown';
+            let database = 'unknown';
+            try {
+                const parsed = new URL(connectionString);
+                host = parsed.host;
+                database = parsed.pathname.replace(/^\//, '') || 'unknown';
+            } catch (_) {
+                /* keep the defaults */
+            }
+
+            const info = { kind: 'postgres', host, database, rows: null, schema: null };
+            try {
+                const { rows } = await pool.query(
+                    'SELECT current_schema() AS schema, (SELECT count(*) FROM kb_users) AS n'
+                );
+                info.schema = rows[0].schema;
+                info.rows = Number(rows[0].n);
+            } catch (err) {
+                info.error = err.message;
+            }
+            return info;
+        },
+
         async listUsers() {
             const { rows } = await pool.query('SELECT data FROM kb_users ORDER BY created_at ASC');
-            return rows.map((row) => normalizeRecord(row.data));
+
+            // One unreadable row must never hide all the others. Anything that
+            // cannot be normalized is skipped and logged loudly rather than
+            // returned as null, which would throw in every caller.
+            const out = [];
+            for (const row of rows) {
+                const record = normalizeRecord(row.data);
+                if (record && record.username) out.push(record);
+                else console.error('[store] SKIPPED unreadable kb_users row:', JSON.stringify(row.data).slice(0, 200));
+            }
+            if (out.length !== rows.length) {
+                console.error(`[store] listUsers returned ${out.length} of ${rows.length} rows`);
+            }
+            return out;
         },
 
         async renameUser(oldUsername, newUsername) {

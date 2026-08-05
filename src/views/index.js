@@ -28,6 +28,7 @@ function loginPage() {
                 <label for="password">وشەی تێپەڕ (Password)</label>
                 <input type="password" id="password" name="password" autocomplete="current-password"
                        placeholder="••••••••" maxlength="${LIMITS.passwordMax}">
+                <p class="form-error" id="auth-error" role="alert" hidden></p>
                 <button class="btn" id="action-btn" type="submit">چوونەژوورەوە 🚀</button>
             </form>
             <div class="toggle-link" id="toggle" role="button" tabindex="0">
@@ -213,6 +214,7 @@ function adminPage() {
             </div>
             <div class="stats-grid" id="stats-grid"></div>
             <p class="hint" id="stats-note"></p>
+            <p class="hint diag" id="diag-note"></p>
         </div>
         <div class="card">
             <h2 class="section" style="color:var(--green)">📋 بەکارهێنەرە چالاکەکان</h2>

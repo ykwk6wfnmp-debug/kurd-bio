@@ -27,11 +27,30 @@
             opts.headers = Object.assign({ 'Content-Type': 'application/json' }, opts.headers || {});
             opts.body = JSON.stringify(opts.body);
         }
+        /* Render's free tier sleeps after ~15 minutes idle and takes 30-60s to
+           wake. Without a timeout the phone just hangs with no feedback, and a
+           registration that never completed looks to the user like one that
+           succeeded. Give it 70s, then say plainly what happened. */
+        var controller = typeof AbortController === 'function' ? new AbortController() : null;
+        var timedOut = false;
+        var timer = null;
+        if (controller) {
+            opts.signal = controller.signal;
+            timer = setTimeout(function () { timedOut = true; controller.abort(); }, 70000);
+        }
+
         var res;
         try {
             res = await fetch(url, opts);
         } catch (e) {
-            return { success: false, message: 'پەیوەندی بە سێرڤەرەوە نەکرا.' };
+            return {
+                success: false,
+                message: timedOut
+                    ? 'سێرڤەرەکە وەڵامی نەدایەوە. لەوانەیە خەوتبێت — تکایە دیسان هەوڵ بدەرەوە.'
+                    : 'پەیوەندی بە سێرڤەرەوە نەکرا. ئینتەرنێتەکەت بپشکنە و دیسان هەوڵ بدەرەوە.'
+            };
+        } finally {
+            if (timer) clearTimeout(timer);
         }
         if (res.status === 401) {
             window.location.href = '/';

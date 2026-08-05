@@ -118,8 +118,12 @@ function createJsonStore(filePath) {
             return { ok: true, record: structuredClone(users.get(username)) };
         },
 
+        async describe() {
+            return { kind: 'json', host: 'local filesystem', database: absolute, rows: users.size };
+        },
+
         async listUsers() {
-            return [...users.values()].map((r) => structuredClone(r));
+            return [...users.values()].filter((r) => r && r.username).map((r) => structuredClone(r));
         },
 
         async renameUser(oldUsername, newUsername) {

@@ -30,6 +30,10 @@ function rateLimit({ windowMs, max, message, keyFn }) {
         if (entry.count > max) {
             const retryAfter = Math.ceil((entry.resetAt - now) / 1000);
             res.set('Retry-After', String(retryAfter));
+            // Logged because a rate-limited signup looks identical to a lost one
+            // from the outside, and behind a proxy a misread client IP can put
+            // every visitor into the same bucket.
+            console.warn(`[rate-limit] BLOCKED ${req.method} ${req.originalUrl} for key "${key}" (retry in ${retryAfter}s)`);
             return res.status(429).json({ success: false, message });
         }
         next();

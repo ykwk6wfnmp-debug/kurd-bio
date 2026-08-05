@@ -57,7 +57,12 @@ function pageRoutes(store) {
         res.redirect(301, profilePath(username));
     });
 
-    router.get('/health', (req, res) => res.json({ ok: true }));
+    // `ip` is what the server resolves through `trust proxy`, and is only ever
+    // the caller's own address — it reveals nothing they do not already know.
+    // It makes rate-limiter behaviour behind Render's proxy verifiable.
+    router.get('/health', (req, res) =>
+        res.json({ ok: true, ip: req.ip, uptimeSeconds: Math.round(process.uptime()) })
+    );
 
     return router;
 }

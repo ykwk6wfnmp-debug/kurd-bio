@@ -59,6 +59,25 @@
             'کاتی ناوخۆیی: ' + s.timezone + ' — «ئەمڕۆ» بەپێی ڕۆژی ناوخۆیی دەژمێردرێت.';
 
         renderStorageWarning(s.storage);
+        loadDiagnostics();
+    }
+
+    /* Shows exactly which database this process is writing to, and an instance
+       id that changes per boot. If the id flips between refreshes, more than one
+       instance (or more than one deployment) is answering this URL. */
+    async function loadDiagnostics() {
+        var data = await KB.api('/api/admin/diagnostics');
+        var note = document.getElementById('diag-note');
+        if (!data.success) { note.textContent = ''; return; }
+        var d = data.diagnostics;
+        note.textContent =
+            'کۆگا: ' + d.storage.kind +
+            ' · ' + d.storage.host +
+            ' · بنکەدراوە: ' + d.storage.database +
+            (d.storage.rows !== null && d.storage.rows !== undefined ? ' · ڕیزەکان: ' + d.storage.rows : '') +
+            ' · ڕیزی نیشاندراو: ' + d.listedUsers +
+            ' · instance: ' + d.instanceId +
+            ' · ' + d.nodeEnv;
     }
 
     /* If storage is not persistent, new signups disappear on every restart —

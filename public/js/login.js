@@ -28,7 +28,14 @@
         var password = passwordInput.value;
         if (!username || !password) return KB.toast('تکایە هەردوو خانەکە پڕبکەرەوە!', true);
 
+        document.getElementById('auth-error').hidden = true;
+        var originalLabel = actionBtn.textContent;
         actionBtn.disabled = true;
+        // The first request after the server sleeps can take 30-60s.
+        actionBtn.textContent = 'چاوەڕێ بکە…';
+        var slow = setTimeout(function () {
+            actionBtn.textContent = 'سێرڤەرەکە هەڵدەستێت، تکایە چاوەڕێ بکە…';
+        }, 4000);
         var body = { username: username, password: password };
         if (isRegister) body.email = emailInput.value.trim();
 
@@ -36,9 +43,21 @@
             method: 'POST',
             body: body
         });
+        clearTimeout(slow);
         actionBtn.disabled = false;
+        actionBtn.textContent = originalLabel;
 
-        if (data.success) window.location.href = data.redirect || '/dashboard';
-        else if (data.message) KB.toast(data.message, true);
+        if (data.success) {
+            window.location.href = data.redirect || '/dashboard';
+            return;
+        }
+        if (data.message) {
+            // Stays on screen: a toast that fades after 2.6s is easy to miss on
+            // a phone, which makes a rejected signup look like a successful one.
+            var box = document.getElementById('auth-error');
+            box.textContent = data.message;
+            box.hidden = false;
+            KB.toast(data.message, true);
+        }
     });
 })();

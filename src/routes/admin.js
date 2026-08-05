@@ -5,6 +5,10 @@ const config = require('../config');
 const { requireAdmin } = require('../lib/session');
 
 const MAX_CREDIT = 10000;
+// Regenerated on every boot, so a changing value across refreshes reveals
+// multiple instances or multiple deployments answering the same URL.
+const INSTANCE_ID = require('crypto').randomBytes(4).toString('hex');
+const STARTED_AT = new Date().toISOString();
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 /** Calendar day in the configured zone, as YYYY-MM-DD, for cheap comparison. */
@@ -92,6 +96,37 @@ function adminRoutes(store) {
                         kind: store.kind,
                         persistent: store.kind === 'postgres'
                     }
+                }
+            });
+        } catch (err) {
+            next(err);
+        }
+    });
+
+    /**
+     * Which database is this process actually writing to, and how many rows
+     * does it hold? `instanceId` changes on every boot, so two different values
+     * across refreshes mean requests are hitting more than one instance — or
+     * more than one deployment.
+     */
+    router.get('/diagnostics', async (req, res, next) => {
+        try {
+            const storage = store.describe ? await store.describe() : { kind: store.kind };
+            const listed = await store.listUsers();
+            res.json({
+                success: true,
+                diagnostics: {
+                    storage,
+                    listedUsers: listed.length,
+                    // If the table's own count and what listUsers() returns
+                    // disagree, rows are being dropped between SQL and the API.
+                    rowsDropped:
+                        typeof storage.rows === 'number' ? storage.rows - listed.length : null,
+                    usernames: listed.map((u) => u.username),
+                    instanceId: INSTANCE_ID,
+                    uptimeSeconds: Math.round(process.uptime()),
+                    startedAt: STARTED_AT,
+                    nodeEnv: process.env.NODE_ENV || 'development'
                 }
             });
         } catch (err) {

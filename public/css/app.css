@@ -171,6 +171,18 @@ h1, h2, h3 { line-height: 1.35; text-wrap: balance; }
 
 .hint { color: var(--muted); font-size: var(--step--1); line-height: 1.9; }
 
+/* Persistent auth error — a fading toast is too easy to miss on a phone. */
+.form-error {
+    margin-top: var(--gap);
+    padding: 0.7rem 0.9rem;
+    background: rgba(218, 54, 51, 0.12);
+    border: 1px solid rgba(218, 54, 51, 0.45);
+    border-radius: var(--r-md);
+    color: #ff9b95;
+    font-size: var(--step--1);
+    line-height: 1.7;
+}
+
 /* ---------- forms ---------- */
 label {
     display: block;
@@ -517,6 +529,18 @@ input[readonly] { color: var(--cyan); direction: ltr; text-align: left; font-siz
     line-height: 1.8;
 }
 .warning-banner strong { display: block; color: var(--amber); margin-bottom: 0.25rem; }
+
+/* Connection diagnostics line — dense, monospace, wraps on narrow screens. */
+.diag {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.68rem;
+    direction: ltr;
+    text-align: left;
+    unicode-bidi: isolate;
+    overflow-wrap: anywhere;
+    opacity: 0.75;
+    margin-top: 0.35rem;
+}
 
 .section-row {
     display: flex;

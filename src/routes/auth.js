@@ -18,19 +18,33 @@ const DUMMY_HASH = bcrypt.hashSync('kurdbio-dummy-password', BCRYPT_ROUNDS);
 function authRoutes(store) {
     const router = express.Router();
 
-    const authLimiter = rateLimit({
+    // Separate buckets. Sharing one meant an admin logging in repeatedly could
+    // exhaust the allowance and block genuine signups from the same IP — and
+    // two phones on the same WiFi share an IP.
+    const loginLimiter = rateLimit({
         windowMs: 15 * 60 * 1000,
-        max: 15,
-        message: 'هەوڵی زۆرت داوە. تکایە چەند خولەکێک چاوەڕێ بکە.'
+        max: 10, // tight: this is the brute-force surface
+        message: 'هەوڵی زۆری چوونەژوورەوە. تکایە ١٥ خولەک چاوەڕێ بکە.'
     });
 
-    router.post('/register', authLimiter, async (req, res, next) => {
+    const registerLimiter = rateLimit({
+        windowMs: 60 * 60 * 1000,
+        max: 20, // generous: a blocked signup costs a real user
+        message: 'هەوڵی زۆری تۆمارکردن لەم ئینتەرنێتەوە. تکایە کاتژمێرێک چاوەڕێ بکە.'
+    });
+
+    router.post('/register', registerLimiter, async (req, res, next) => {
+        // Every registration outcome is logged. Without this, a signup that was
+        // rejected (rate limited, invalid, already taken) is indistinguishable
+        // from one that vanished, and the only place to look is the host's logs.
+        const attempted = String(req.body && req.body.username);
         try {
             const username = checkUsername(req.body.username);
             const password = checkPassword(req.body.password);
             const email = checkEmail(req.body.email); // optional, admin-visible only
 
             if (await store.getUser(username)) {
+                console.warn(`[register] REJECTED "${username}" — username already exists`);
                 return res.status(409).json({ success: false, message: 'ئەم یوزەرنەمەیە بەردەست نییە!' });
             }
 
@@ -40,14 +54,25 @@ function authRoutes(store) {
                 passwordHash: await bcrypt.hash(password, BCRYPT_ROUNDS)
             });
             await store.saveUser(record);
+
+            // Read it back through the store before claiming success, so a
+            // write that did not land can never look like one that did.
+            const persisted = await store.getUser(username);
+            if (!persisted) {
+                console.error(`[register] WRITE LOST for "${username}" — saveUser returned but the row is not readable`);
+                return res.status(500).json({ success: false, message: 'هەڵەیەک ڕوویدا لە خەزنکردنی هەژمار.' });
+            }
+
+            console.log(`[register] OK "${username}" (email: ${email ? 'yes' : 'no'})`);
             startSession(res, record);
             res.json({ success: true, redirect: '/dashboard' });
         } catch (err) {
+            console.warn(`[register] REJECTED "${attempted}" — ${err.name}: ${err.message}`);
             next(err);
         }
     });
 
-    router.post('/login', authLimiter, async (req, res, next) => {
+    router.post('/login', loginLimiter, async (req, res, next) => {
         try {
             const username = String(req.body.username || '').trim().toLowerCase();
             const password = String(req.body.password || '');
